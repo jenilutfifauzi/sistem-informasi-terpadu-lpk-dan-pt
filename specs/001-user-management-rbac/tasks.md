@@ -70,11 +70,11 @@
 
 ### Implementation for User Story 1
 
-- [ ] T019 [US1] Create super admin user via `php artisan shield:super-admin --no-interaction` with predefined credentials (for testing)
-- [ ] T020 [US1] Verify Shield plugin is registered in `app/Providers/Filament/AdminPanelProvider.php` (auto-done by shield:install)
-- [ ] T021 [US1] Configure Shield panel settings in `config/filament-shield.php` to set is_scoped_to_tenant = false
-- [ ] T022 [US1] Test super admin can login via browser at `/admin/login`
-- [ ] T023 [US1] Verify Shield menu items (Roles) appear in sidebar for super admin
+- [x] T019 [US1] Create super admin user via `php artisan shield:super-admin --no-interaction` with predefined credentials (for testing)
+- [x] T020 [US1] Verify Shield plugin is registered in `app/Providers/Filament/AdminPanelProvider.php` (auto-done by shield:install)
+- [x] T021 [US1] Configure Shield panel settings in `config/filament-shield.php` to set is_scoped_to_tenant = false
+- [x] T022 [US1] Test super admin can login via browser at `/admin/login`
+- [x] T023 [US1] Verify Shield menu items (Roles) appear in sidebar for super admin
 
 **Checkpoint**: At this point, super admin can login and see Shield's default Role resource
 
