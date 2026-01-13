@@ -88,19 +88,19 @@
 
 ### Implementation for User Story 2
 
-- [ ] T024 [P] [US2] Create RolesAndPermissionsSeeder in `database/seeders/RolesAndPermissionsSeeder.php`
-- [ ] T025 [US2] Implement createSuperAdminRole() method in RolesAndPermissionsSeeder to create super_admin role with all permissions
-- [ ] T026 [P] [US2] Implement createAdminLPKRole() method in RolesAndPermissionsSeeder with view_user, view_any_user permissions
-- [ ] T027 [P] [US2] Implement createInstrukturRole() method in RolesAndPermissionsSeeder with view_user permission only
-- [ ] T028 [P] [US2] Implement createHRPTRole() method in RolesAndPermissionsSeeder with view_user, view_any_user, create_user, update_user permissions
-- [ ] T029 [P] [US2] Implement createAdminPTRole() method in RolesAndPermissionsSeeder with view_user, view_any_user permissions
-- [ ] T030 [P] [US2] Implement createLegalPTRole() method in RolesAndPermissionsSeeder with view_user permission only
-- [ ] T031 [P] [US2] Implement createKeuanganPTRole() method in RolesAndPermissionsSeeder with view_user permission only
-- [ ] T032 [P] [US2] Implement createKeuanganLPKRole() method in RolesAndPermissionsSeeder with view_user permission only
-- [ ] T033 [P] [US2] Implement createPimpinanRole() method in RolesAndPermissionsSeeder with all view_* permissions
-- [ ] T034 [US2] Register RolesAndPermissionsSeeder in `database/seeders/DatabaseSeeder.php`
-- [ ] T035 [US2] Run RolesAndPermissionsSeeder via `php artisan db:seed --class=RolesAndPermissionsSeeder`
-- [ ] T036 [US2] Verify 8 roles created in database via tinker or Shield UI
+- [x] T024 [P] [US2] Create RolesAndPermissionsSeeder in `database/seeders/RolesAndPermissionsSeeder.php`
+- [x] T025 [US2] Implement createSuperAdminRole() method in RolesAndPermissionsSeeder to create super_admin role with all permissions
+- [x] T026 [P] [US2] Implement createAdminLPKRole() method in RolesAndPermissionsSeeder with view_user, view_any_user permissions
+- [x] T027 [P] [US2] Implement createInstrukturRole() method in RolesAndPermissionsSeeder with view_user permission only
+- [x] T028 [P] [US2] Implement createHRPTRole() method in RolesAndPermissionsSeeder with view_user, view_any_user, create_user, update_user permissions
+- [x] T029 [P] [US2] Implement createAdminPTRole() method in RolesAndPermissionsSeeder with view_user, view_any_user permissions
+- [x] T030 [P] [US2] Implement createLegalPTRole() method in RolesAndPermissionsSeeder with view_user permission only
+- [x] T031 [P] [US2] Implement createKeuanganPTRole() method in RolesAndPermissionsSeeder with view_user permission only
+- [x] T032 [P] [US2] Implement createKeuanganLPKRole() method in RolesAndPermissionsSeeder with view_user permission only
+- [x] T033 [P] [US2] Implement createPimpinanRole() method in RolesAndPermissionsSeeder with all view_* permissions
+- [x] T034 [US2] Register RolesAndPermissionsSeeder in `database/seeders/DatabaseSeeder.php`
+- [x] T035 [US2] Run RolesAndPermissionsSeeder via `php artisan db:seed --class=RolesAndPermissionsSeeder`
+- [x] T036 [US2] Verify 8 roles created in database via tinker or Shield UI
 - [ ] T037 [US2] Test editing a role's permissions via Shield Role Resource UI
 - [ ] T038 [US2] Test creating a new custom role via Shield Role Resource UI
 
