@@ -1,0 +1,209 @@
+<?php
+
+namespace App\Filament\Resources;
+
+use App\Enums\JabatanLPK;
+use App\Enums\StatusKepegawaian;
+use App\Models\EmployeeLPK;
+use Filament\Forms;
+use Filament\Forms\Form;
+use Filament\Resources\Resource;
+use Filament\Tables;
+use Filament\Tables\Table;
+
+class EmployeeLPKResource extends Resource
+{
+    protected static ?string $model = EmployeeLPK::class;
+
+    protected static ?string $navigationIcon = 'heroicon-o-user-group';
+
+    protected static ?string $navigationGroup = 'Data Master';
+
+    protected static ?int $navigationSort = 1;
+
+    protected static ?string $recordTitleAttribute = 'nama_lengkap';
+
+    public static function getModelLabel(): string
+    {
+        return 'Karyawan LPK';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Karyawan LPK';
+    }
+
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                // Personal Information Section
+                Forms\Components\Section::make('Informasi Personal')
+                    ->description('Data pribadi karyawan')
+                    ->schema([
+                        Forms\Components\TextInput::make('nama_lengkap')
+                            ->label('Nama Lengkap')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('nik')
+                            ->label('NIK')
+                            ->required()
+                            ->length(16)
+                            ->disabled(fn (?EmployeeLPK $record) => $record !== null)
+                            ->dehydrated(),
+                        Forms\Components\TextInput::make('email')
+                            ->label('Email')
+                            ->email()
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\DatePicker::make('tanggal_lahir')
+                            ->label('Tanggal Lahir')
+                            ->required()
+                            ->maxDate(now()),
+                        Forms\Components\Select::make('jenis_kelamin')
+                            ->label('Jenis Kelamin')
+                            ->required()
+                            ->options([
+                                'Laki-laki' => 'Laki-laki',
+                                'Perempuan' => 'Perempuan',
+                            ]),
+                        Forms\Components\Textarea::make('alamat')
+                            ->label('Alamat')
+                            ->required()
+                            ->maxLength(1000),
+                        Forms\Components\TextInput::make('telepon')
+                            ->label('Telepon')
+                            ->required()
+                            ->tel()
+                            ->maxLength(20),
+                    ])
+                    ->columns(2),
+
+                // Employment Information Section
+                Forms\Components\Section::make('Informasi Kepegawaian')
+                    ->description('Posisi dan status karyawan')
+                    ->schema([
+                        Forms\Components\Select::make('jabatan')
+                            ->label('Jabatan')
+                            ->required()
+                            ->options(JabatanLPK::class),
+                        Forms\Components\Select::make('status')
+                            ->label('Status')
+                            ->required()
+                            ->options(StatusKepegawaian::class)
+                            ->default('Aktif'),
+                        Forms\Components\DatePicker::make('tanggal_bergabung')
+                            ->label('Tanggal Bergabung')
+                            ->required()
+                            ->disabled(fn (?EmployeeLPK $record) => $record !== null)
+                            ->dehydrated(),
+                        Forms\Components\Hidden::make('entity')
+                            ->default('LPK'),
+                    ])
+                    ->columns(2),
+
+                // Compensation Section
+                Forms\Components\Section::make('Kompensasi')
+                    ->description('Data honor dan tunjangan')
+                    ->schema([
+                        Forms\Components\TextInput::make('honor_pokok')
+                            ->label('Honor Pokok')
+                            ->numeric()
+                            ->minValue(0)
+                            ->prefix('Rp ')
+                            ->suffix(' / bulan'),
+                        Forms\Components\TextInput::make('honor_per_jam')
+                            ->label('Honor per Jam Mengajar')
+                            ->numeric()
+                            ->minValue(0)
+                            ->prefix('Rp ')
+                            ->suffix(' / jam')
+                            ->visible(fn (Forms\Get $get) => $get('jabatan') === JabatanLPK::Instruktur),
+                    ])
+                    ->columns(2),
+            ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                Tables\Columns\TextColumn::make('nama_lengkap')
+                    ->label('Nama Lengkap')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('nik')
+                    ->label('NIK')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\BadgeColumn::make('jabatan')
+                    ->label('Jabatan')
+                    ->sortable()
+                    ->colors([
+                        'primary' => 'Instruktur',
+                        'success' => 'Admin LPK',
+                        'info' => 'Staff',
+                    ]),
+                Tables\Columns\BadgeColumn::make('status')
+                    ->label('Status')
+                    ->sortable()
+                    ->colors([
+                        'success' => 'Aktif',
+                        'warning' => 'Cuti',
+                        'danger' => 'Resign',
+                    ]),
+                Tables\Columns\TextColumn::make('tanggal_bergabung')
+                    ->label('Tanggal Bergabung')
+                    ->date('d M Y')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('email')
+                    ->label('Email')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+            ])
+            ->filters([
+                Tables\Filters\SelectFilter::make('jabatan')
+                    ->label('Jabatan')
+                    ->options(JabatanLPK::class),
+                Tables\Filters\SelectFilter::make('status')
+                    ->label('Status')
+                    ->options(StatusKepegawaian::class),
+                Tables\Filters\Filter::make('has_honor')
+                    ->label('Ada Honor')
+                    ->toggle()
+                    ->query(fn ($query) => $query->whereNotNull('honor_pokok')),
+                Tables\Filters\TrashedFilter::make()
+                    ->label('Tampilkan Data Resign'),
+            ])
+            ->actions([
+                Tables\Actions\ViewAction::make(),
+                Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\RestoreAction::make(),
+            ])
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\RestoreBulkAction::make(),
+                ]),
+            ])
+            ->defaultSort('tanggal_bergabung', 'desc');
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            //
+        ];
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListEmployeesLPK::route('/'),
+            'create' => Pages\CreateEmployeeLPK::route('/create'),
+            'view' => Pages\ViewEmployeeLPK::route('/{record}'),
+            'edit' => Pages\EditEmployeeLPK::route('/{record}/edit'),
+        ];
+    }
+}

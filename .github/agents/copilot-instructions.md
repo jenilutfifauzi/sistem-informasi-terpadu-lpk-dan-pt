@@ -3,6 +3,7 @@
 Auto-generated from all feature plans. Last updated: 2026-01-13
 
 ## Active Technologies
+- MySQL/MariaDB (karyawan_lpk table, relationship to future pelatihan table) (002-karyawan-lpk)
 
 - PHP 8.4.5 (001-user-management-rbac)
 
@@ -22,6 +23,7 @@ tests/
 PHP 8.4.5: Follow standard conventions
 
 ## Recent Changes
+- 002-karyawan-lpk: Added PHP 8.4.5
 
 - 001-user-management-rbac: Added PHP 8.4.5
 
