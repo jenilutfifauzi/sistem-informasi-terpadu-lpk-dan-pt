@@ -15,10 +15,6 @@ class EmployeeLPKResource extends Resource
 {
     protected static ?string $model = EmployeeLPK::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-user-group';
-
-    protected static ?string $navigationGroup = 'Data Master';
-
     protected static ?int $navigationSort = 1;
 
     protected static ?string $recordTitleAttribute = 'nama_lengkap';
@@ -26,6 +22,11 @@ class EmployeeLPKResource extends Resource
     public static function getModelLabel(): string
     {
         return 'Karyawan LPK';
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return 'Data Master';
     }
 
     public static function getPluralModelLabel(): string
