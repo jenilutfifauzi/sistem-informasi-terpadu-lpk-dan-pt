@@ -4,10 +4,11 @@ namespace App\Filament\Resources;
 
 use App\Enums\JabatanLPK;
 use App\Enums\StatusKepegawaian;
+use App\Filament\Resources\EmployeeLPKResource\Pages;
 use App\Models\EmployeeLPK;
 use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Schemas;
 use Filament\Tables;
 use Filament\Tables\Table;
 
@@ -34,12 +35,12 @@ class EmployeeLPKResource extends Resource
         return 'Karyawan LPK';
     }
 
-    public static function form(Form $form): Form
+    public static function form(Schemas\Schema $schema): Schemas\Schema
     {
-        return $form
+        return $schema
             ->schema([
                 // Personal Information Section
-                Forms\Components\Section::make('Informasi Personal')
+                Schemas\Components\Section::make('Informasi Personal')
                     ->description('Data pribadi karyawan')
                     ->schema([
                         Forms\Components\TextInput::make('nama_lengkap')
@@ -81,7 +82,7 @@ class EmployeeLPKResource extends Resource
                     ->columns(2),
 
                 // Employment Information Section
-                Forms\Components\Section::make('Informasi Kepegawaian')
+                Schemas\Components\Section::make('Informasi Kepegawaian')
                     ->description('Posisi dan status karyawan')
                     ->schema([
                         Forms\Components\Select::make('jabatan')
@@ -104,7 +105,7 @@ class EmployeeLPKResource extends Resource
                     ->columns(2),
 
                 // Compensation Section
-                Forms\Components\Section::make('Kompensasi')
+                Schemas\Components\Section::make('Kompensasi')
                     ->description('Data honor dan tunjangan')
                     ->schema([
                         Forms\Components\TextInput::make('honor_pokok')
