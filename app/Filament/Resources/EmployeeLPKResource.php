@@ -158,6 +158,11 @@ class EmployeeLPKResource extends Resource
                     ->label('Tanggal Bergabung')
                     ->date('d M Y')
                     ->sortable(),
+                Tables\Columns\TextColumn::make('honor_pokok')
+                    ->label('Honor Pokok')
+                    ->money('IDR', locale: 'id')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('email')
                     ->label('Email')
                     ->searchable()

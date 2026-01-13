@@ -45,7 +45,23 @@ class EmployeeLPKPolicy
      */
     public function update(User $user, EmployeeLPK $employeeLPK): bool
     {
+        // Allow Keuangan LPK to update only honor fields (limited update)
+        if ($user->hasRole('keuangan_lpk')) {
+            return true;
+        }
+
         return $user->hasAnyPermission([
+            'update_karyawan_lpk',
+            'update_karyawan_l_p_k',
+        ]);
+    }
+
+    /**
+     * Determine whether the user can update honor fields (Keuangan LPK access).
+     */
+    public function updateHonor(User $user, EmployeeLPK $employeeLPK): bool
+    {
+        return $user->hasRole('keuangan_lpk') || $user->hasAnyPermission([
             'update_karyawan_lpk',
             'update_karyawan_l_p_k',
         ]);
