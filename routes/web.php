@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\EmployeeSertifikatController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -16,3 +17,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+// Employee Sertifikat download route
+Route::get('/karyawan-lpk/{employee}/sertifikat/download', [EmployeeSertifikatController::class, 'download'])
+    ->name('karyawan-lpk.sertifikat.download')
+    ->middleware('auth');

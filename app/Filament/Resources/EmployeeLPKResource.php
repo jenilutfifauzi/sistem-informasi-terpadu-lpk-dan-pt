@@ -123,6 +123,21 @@ class EmployeeLPKResource extends Resource
                             ->visible(fn (Forms\Get $get) => $get('jabatan') === JabatanLPK::Instruktur),
                     ])
                     ->columns(2),
+
+                // Sertifikat Section (Instruktur only)
+                Schemas\Components\Section::make('Sertifikat Kompetensi')
+                    ->description('Upload dokumen sertifikat kompetensi (PDF, JPG, PNG max 5MB)')
+                    ->schema([
+                        Forms\Components\FileUpload::make('sertifikat_path')
+                            ->label('File Sertifikat')
+                            ->disk('private')
+                            ->directory('certificates')
+                            ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
+                            ->maxSize(5120) // 5MB in KB
+                            ->preserveFilenames(),
+                    ])
+                    ->columns(1)
+                    ->visible(fn (Forms\Get $get) => $get('jabatan') === JabatanLPK::Instruktur),
             ]);
     }
 
@@ -163,6 +178,12 @@ class EmployeeLPKResource extends Resource
                     ->money('IDR', locale: 'id')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\IconColumn::make('sertifikat_path')
+                    ->label('Sertifikat')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-document-check')
+                    ->falseIcon('heroicon-o-document')
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('email')
                     ->label('Email')
                     ->searchable()
