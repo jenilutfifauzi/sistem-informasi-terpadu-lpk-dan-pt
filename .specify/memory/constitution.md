@@ -1,16 +1,17 @@
 <!--
 Sync Impact Report
 
-- Version change: template → 1.0.0
-- Modified principles: (added) Data Integrity & Single Source of Truth; Multi-Entity Isolation; Role-Based Access Control & Least Privilege; Auditability & Compliance; Incremental Delivery & Simplicity
-- Added sections: Operational Constraints; Development Workflow
-- Removed sections: none (placeholders replaced)
+- Version change: 1.0.0 → 1.0.1
+- Modified principles: none
+- Added sections: Feature Development Sequencing (clarification on PRD-aligned roadmap)
+- Removed sections: none
 - Templates requiring updates: 
   ✅ plan-template.md (Constitution Check section aligns with principles)
   ✅ spec-template.md (Requirements section supports principle validation)
   ✅ tasks-template.md (Phase structure supports incremental delivery principle)
-  ⚠ Commands/*.md (pending review for agent-agnostic references)
+  ✅ No command files exist (N/A)
 - Follow-up TODOs: RATIFICATION_DATE — provide original adoption date when known
+- Rationale for PATCH: Added non-normative guidance on feature sequencing based on PRD dependencies. No principle changes.
 -->
 
 # Sistem Informasi Terpadu PT PJTKI & LPK Constitution
@@ -79,6 +80,23 @@ Development MUST follow Laravel best practices and repository conventions:
 - Follow the Laravel 10 structure (middleware in `app/Http/Middleware/`, service providers in `app/Providers/`)
 - Check sibling files for conventions before creating new files
 
+### Feature Development Sequencing
+
+Based on the PRD (prd_sistem_informasi_terpadu_pt_lpk_laravel_filament.md), features MUST be developed in dependency order:
+
+**Completed**:
+1. ✅ User Management & RBAC (spec 001) — Foundation for all access control
+
+**Recommended Sequence**:
+2. **Karyawan LPK** (Module 6.3) — Simpler entity, establishes employee management patterns
+3. **CTK Core** (Module 6.4) — Single source of truth for CTK lifecycle, central to entire system
+4. **Pelatihan LPK** (Module 6.5) — Depends on CTK and Karyawan LPK (instructors)
+5. **Karyawan PT** (Module 6.2) — PT employee management following LPK patterns
+6. **Penempatan PT** (Module 6.6) — Depends on CTK reaching "Lulus LPK" status
+7. **Dashboards** (Module 7.1-7.5) — Aggregates data from all modules
+
+**Rationale**: CTK is the most critical entity (single source of truth principle). Karyawan LPK should come before CTK to establish instructor records needed for training assignments. Each module builds on previous foundation.
+
 ## Governance
 
 Amendments to this constitution MUST follow the process below:
@@ -103,4 +121,4 @@ Every quarter the maintainers MUST run a compliance check (tool-assisted where p
 
 All PRs/reviews must verify compliance with core principles. Complexity must be justified explicitly. Use `.github/copilot-instructions.md`, `AGENTS.md`, `CLAUDE.md`, and `GEMINI.md` for runtime development guidance.
 
-**Version**: 1.0.0 | **Ratified**: TODO(RATIFICATION_DATE): provide original adoption date | **Last Amended**: 2026-01-13
+**Version**: 1.0.1 | **Ratified**: TODO(RATIFICATION_DATE): provide original adoption date | **Last Amended**: 2026-01-13
