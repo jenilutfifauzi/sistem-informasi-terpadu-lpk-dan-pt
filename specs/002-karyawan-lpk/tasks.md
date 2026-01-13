@@ -18,9 +18,9 @@
 
 **Purpose**: Project initialization and basic structure. Since Laravel project already exists, verify configuration only.
 
-- [ ] T001 Verify private disk configuration exists in config/filesystems.php
-- [ ] T002 Create storage/app/private/certificates/ directory for sertifikat files
-- [ ] T003 [P] Verify spatie/laravel-activitylog is installed (from spec 001) or install if missing
+- [x] T001 Verify private disk configuration exists in config/filesystems.php
+- [x] T002 Create storage/app/private/certificates/ directory for sertifikat files
+- [x] T003 [P] Verify spatie/laravel-activitylog is installed (from spec 001) or install if missing
 
 **Checkpoint**: Storage infrastructure ready
 
@@ -32,17 +32,17 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T004 [P] Create JabatanLPK enum in app/Enums/JabatanLPK.php with cases: Instruktur, AdminLPK, Staff (implementing HasLabel)
-- [ ] T005 [P] Create StatusKepegawaian enum in app/Enums/StatusKepegawaian.php with cases: Aktif, Cuti, Resign (implementing HasLabel)
-- [ ] T006 [P] Verify EntityType enum exists in app/Enums/EntityType.php with PT and LPK cases (from spec 001)
-- [ ] T007 Create EmployeeLPK model in app/Models/EmployeeLPK.php with SoftDeletes, LogsActivity, boot() event for entity auto-assignment
-- [ ] T008 Create migration 2026_01_13_000001_create_karyawan_lpk_table.php with 20 fields, indexes, constraints, foreign keys
-- [ ] T009 Create EmployeeLPKFactory in database/factories/EmployeeLPKFactory.php with instruktur() and resign() states
-- [ ] T010 [P] Create EmployeeLPKPolicy in app/Policies/EmployeeLPKPolicy.php with viewAny, view, create, update, delete, restore, forceDelete, viewOwn, updateOwn methods
-- [ ] T011 [P] Create StoreEmployeeLPKRequest in app/Http/Requests/StoreEmployeeLPKRequest.php with 18 validation rules
-- [ ] T012 [P] Create UpdateEmployeeLPKRequest in app/Http/Requests/UpdateEmployeeLPKRequest.php with validation rules (nik not editable)
-- [ ] T013 Run migration: php artisan migrate to create karyawan_lpk table
-- [ ] T014 Create EmployeeLPKSeeder in database/seeders/EmployeeLPKSeeder.php with 10 sample employees (5 Instruktur, 3 Admin, 2 Staff)
+- [x] T004 [P] Create JabatanLPK enum in app/Enums/JabatanLPK.php with cases: Instruktur, AdminLPK, Staff (implementing HasLabel)
+- [x] T005 [P] Create StatusKepegawaian enum in app/Enums/StatusKepegawaian.php with cases: Aktif, Cuti, Resign (implementing HasLabel)
+- [x] T006 [P] Verify EntityType enum exists in app/Enums/EntityType.php with PT and LPK cases (from spec 001)
+- [x] T007 Create EmployeeLPK model in app/Models/EmployeeLPK.php with SoftDeletes, LogsActivity, boot() event for entity auto-assignment
+- [x] T008 Create migration 2026_01_13_000001_create_karyawan_lpk_table.php with 20 fields, indexes, constraints, foreign keys
+- [x] T009 Create EmployeeLPKFactory in database/factories/EmployeeLPKFactory.php with instruktur() and resign() states
+- [x] T010 [P] Create EmployeeLPKPolicy in app/Policies/EmployeeLPKPolicy.php with viewAny, view, create, update, delete, restore, forceDelete, viewOwn, updateOwn methods
+- [x] T011 [P] Create StoreEmployeeLPKRequest in app/Http/Requests/StoreEmployeeLPKRequest.php with 18 validation rules
+- [x] T012 [P] Create UpdateEmployeeLPKRequest in app/Http/Requests/UpdateEmployeeLPKRequest.php with validation rules (nik not editable)
+- [x] T013 Run migration: php artisan migrate to create karyawan_lpk table
+- [x] T014 Create EmployeeLPKSeeder in database/seeders/EmployeeLPKSeeder.php with 10 sample employees (5 Instruktur, 3 Admin, 2 Staff)
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -61,43 +61,43 @@
 
 ### Implementation for User Story 1
 
-- [ ] T015 [P] [US1] Create EmployeeLPKResource in app/Filament/Resources/EmployeeLPKResource.php with form() method defining 3 sections: Personal Info, Employment, Audit
-- [ ] T016 [P] [US1] Create ListEmployeesLPK page in app/Filament/Resources/EmployeeLPKResource/Pages/ListEmployeesLPK.php with table columns and TrashedFilter
-- [ ] T017 [P] [US1] Create CreateEmployeeLPK page in app/Filament/Resources/EmployeeLPKResource/Pages/CreateEmployeeLPK.php
-- [ ] T018 [P] [US1] Create EditEmployeeLPK page in app/Filament/Resources/EmployeeLPKResource/Pages/EditEmployeeLPK.php with NIK field disabled
-- [ ] T019 [P] [US1] Create ViewEmployeeLPK page in app/Filament/Resources/EmployeeLPKResource/Pages/ViewEmployeeLPK.php with read-only infolist
-- [ ] T020 [US1] Implement form schema in EmployeeLPKResource::form() with Personal Info section (nama_lengkap, nik, email, tanggal_lahir, jenis_kelamin, alamat, telepon)
-- [ ] T021 [US1] Implement form schema Employment section (jabatan Select with enum, status Select with enum, tanggal_bergabung DatePicker, entity Hidden field default='LPK')
-- [ ] T022 [US1] Implement table() method in EmployeeLPKResource with columns: nama_lengkap, nik, jabatan (badge), status (badge with color), tanggal_bergabung
-- [ ] T023 [US1] Add filters to table: SelectFilter for jabatan (using JabatanLPK enum), SelectFilter for status (using StatusKepegawaian enum), TrashedFilter
-- [ ] T024 [US1] Add table actions: EditAction, DeleteAction (soft delete with status change to Resign), RestoreAction, ForceDeleteAction (admin only)
-- [ ] T025 [US1] Implement getEloquentQuery() in ListEmployeesLPK to scope by entity='LPK'
-- [ ] T026 [US1] Configure resource navigation: icon, group "Data Master", sort order, badge count for active employees
-- [ ] T027 [US1] Register EmployeeLPKResource in Filament panel provider (should auto-discover)
-- [ ] T028 [US1] Add authorization to EmployeeLPKResource::canViewAny() checking user has 'view_any_karyawan_lpk' permission
+- [x] T015 [P] [US1] Create EmployeeLPKResource in app/Filament/Resources/EmployeeLPKResource.php with form() method defining 3 sections: Personal Info, Employment, Audit
+- [x] T016 [P] [US1] Create ListEmployeesLPK page in app/Filament/Resources/EmployeeLPKResource/Pages/ListEmployeesLPK.php with table columns and TrashedFilter
+- [x] T017 [P] [US1] Create CreateEmployeeLPK page in app/Filament/Resources/EmployeeLPKResource/Pages/CreateEmployeeLPK.php
+- [x] T018 [P] [US1] Create EditEmployeeLPK page in app/Filament/Resources/EmployeeLPKResource/Pages/EditEmployeeLPK.php with NIK field disabled
+- [x] T019 [P] [US1] Create ViewEmployeeLPK page in app/Filament/Resources/EmployeeLPKResource/Pages/ViewEmployeeLPK.php with read-only infolist
+- [x] T020 [US1] Implement form schema in EmployeeLPKResource::form() with Personal Info section (nama_lengkap, nik, email, tanggal_lahir, jenis_kelamin, alamat, telepon)
+- [x] T021 [US1] Implement form schema Employment section (jabatan Select with enum, status Select with enum, tanggal_bergabung DatePicker, entity Hidden field default='LPK')
+- [x] T022 [US1] Implement table() method in EmployeeLPKResource with columns: nama_lengkap, nik, jabatan (badge), status (badge with color), tanggal_bergabung
+- [x] T023 [US1] Add filters to table: SelectFilter for jabatan (using JabatanLPK enum), SelectFilter for status (using StatusKepegawaian enum), TrashedFilter
+- [x] T024 [US1] Add table actions: EditAction, DeleteAction (soft delete with status change to Resign), RestoreAction, ForceDeleteAction (admin only)
+- [x] T025 [US1] Implement getEloquentQuery() in ListEmployeesLPK to scope by entity='LPK'
+- [x] T026 [US1] Configure resource navigation: icon, group "Data Master", sort order, badge count for active employees
+- [x] T027 [US1] Register EmployeeLPKResource in Filament panel provider (should auto-discover)
+- [x] T028 [US1] Add authorization to EmployeeLPKResource::canViewAny() checking user has 'view_any_karyawan_lpk' permission
 
 ### Testing for User Story 1
 
-- [ ] T029 [P] [US1] Create EmployeeLPKResourceTest in tests/Feature/Filament/EmployeeLPKResourceTest.php testing CRUD operations via Livewire
-- [ ] T030 [P] [US1] Test case: Admin LPK can list all employees, see table with nama/nik/jabatan columns
-- [ ] T031 [P] [US1] Test case: Admin LPK can create employee with valid data, entity auto-set to LPK
-- [ ] T032 [P] [US1] Test case: Admin LPK cannot create employee with duplicate NIK (validation error)
-- [ ] T033 [P] [US1] Test case: Admin LPK cannot create employee with duplicate email (validation error)
-- [ ] T034 [P] [US1] Test case: Admin LPK can edit employee, NIK field disabled
-- [ ] T035 [P] [US1] Test case: Admin LPK can soft delete employee (status changes to Resign, deleted_at filled)
-- [ ] T036 [P] [US1] Test case: Admin LPK can restore soft-deleted employee (status changes to Aktif, deleted_at cleared)
-- [ ] T037 [P] [US1] Test case: Filter by jabatan=Instruktur shows only Instruktur employees
-- [ ] T038 [P] [US1] Test case: Filter by status=Aktif shows only active employees
-- [ ] T039 [P] [US1] Test case: TrashedFilter "Only Trashed" shows only soft-deleted employees
-- [ ] T040 [US1] Create EmployeeLPKValidationTest in tests/Feature/Filament/EmployeeLPKValidationTest.php
-- [ ] T041 [P] [US1] Test case: NIK must be 16 digits (reject 15 digits, reject 17 digits, reject letters)
-- [ ] T042 [P] [US1] Test case: Email must be valid format (reject invalid@, reject @domain.com)
-- [ ] T043 [P] [US1] Test case: Tanggal lahir must be before today (reject future date)
-- [ ] T044 [P] [US1] Test case: Tanggal bergabung must be >= tanggal lahir (reject date before birth)
-- [ ] T045 [US1] Create EmployeeLPKModelTest in tests/Feature/Models/EmployeeLPKModelTest.php
-- [ ] T046 [P] [US1] Test case: Entity auto-assigned to LPK on model creation
-- [ ] T047 [P] [US1] Test case: SoftDeletes trait works (deleted record has deleted_at)
-- [ ] T048 [P] [US1] Test case: LogsActivity trait logs create/update/delete actions
+- [x] T029 [P] [US1] Create EmployeeLPKResourceTest in tests/Feature/Filament/EmployeeLPKResourceTest.php testing CRUD operations via Livewire
+- [x] T030 [P] [US1] Test case: Admin LPK can list all employees, see table with nama/nik/jabatan columns
+- [x] T031 [P] [US1] Test case: Admin LPK can create employee with valid data, entity auto-set to LPK
+- [x] T032 [P] [US1] Test case: Admin LPK cannot create employee with duplicate NIK (validation error)
+- [x] T033 [P] [US1] Test case: Admin LPK cannot create employee with duplicate email (validation error)
+- [x] T034 [P] [US1] Test case: Admin LPK can edit employee, NIK field disabled
+- [x] T035 [P] [US1] Test case: Admin LPK can soft delete employee (status changes to Resign, deleted_at filled)
+- [x] T036 [P] [US1] Test case: Admin LPK can restore soft-deleted employee (status changes to Aktif, deleted_at cleared)
+- [x] T037 [P] [US1] Test case: Filter by jabatan=Instruktur shows only Instruktur employees
+- [x] T038 [P] [US1] Test case: Filter by status=Aktif shows only active employees
+- [x] T039 [P] [US1] Test case: TrashedFilter "Only Trashed" shows only soft-deleted employees
+- [x] T040 [US1] Create EmployeeLPKValidationTest in tests/Feature/Filament/EmployeeLPKValidationTest.php
+- [x] T041 [P] [US1] Test case: NIK must be 16 digits (reject 15 digits, reject 17 digits, reject letters)
+- [x] T042 [P] [US1] Test case: Email must be valid format (reject invalid@, reject @domain.com)
+- [x] T043 [P] [US1] Test case: Tanggal lahir must be before today (reject future date)
+- [x] T044 [P] [US1] Test case: Tanggal bergabung must be >= tanggal lahir (reject date before birth)
+- [x] T045 [US1] Create EmployeeLPKModelTest in tests/Feature/Models/EmployeeLPKModelTest.php
+- [x] T046 [P] [US1] Test case: Entity auto-assigned to LPK on model creation
+- [x] T047 [P] [US1] Test case: SoftDeletes trait works (deleted record has deleted_at)
+- [x] T048 [P] [US1] Test case: LogsActivity trait logs create/update/delete actions
 - [ ] T049 [US1] Create EmployeeLPKAuthorizationTest in tests/Feature/Filament/EmployeeLPKAuthorizationTest.php
 - [ ] T050 [P] [US1] Test case: Admin LPK role can viewAny, create, update, delete employees
 - [ ] T051 [P] [US1] Test case: Pimpinan role can viewAny but cannot create/update/delete
