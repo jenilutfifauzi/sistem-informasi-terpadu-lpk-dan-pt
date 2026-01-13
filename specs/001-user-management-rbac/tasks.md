@@ -149,16 +149,16 @@
 
 ### Implementation for User Story 4
 
-- [ ] T059 [P] [US4] Generate permissions for all resources via `php artisan shield:generate --all --no-interaction`
-- [ ] T060 [US4] Create test user with instruktur role via UserResource UI
-- [ ] T061 [US4] Login as instruktur user and verify Users menu does NOT appear in sidebar
-- [ ] T062 [US4] Login as instruktur user and manually access `/admin/shield/users` URL to verify 403 Forbidden error
-- [ ] T063 [US4] Create test user with pimpinan role via UserResource UI
-- [ ] T064 [US4] Login as pimpinan user and verify all view_* permissions work (can see all menus)
-- [ ] T065 [US4] Create test user with admin_lpk role via UserResource UI
-- [ ] T066 [US4] Login as admin_lpk user and verify only view access (cannot create/edit/delete users)
-- [ ] T067 [US4] Login as admin_lpk user and try to click "New User" button to verify it's hidden or disabled
-- [ ] T068 [US4] Verify Shield's role resource shows correct permission checkboxes for each role
+- [x] T059 [P] [US4] Generate permissions for all resources via `php artisan shield:generate --all --no-interaction`
+- [x] T060 [US4] Create test user with instruktur role via UserResource UI
+- [x] T061 [US4] Login as instruktur user and verify Users menu does NOT appear in sidebar
+- [x] T062 [US4] Login as instruktur user and manually access `/admin/shield/users` URL to verify 403 Forbidden error
+- [x] T063 [US4] Create test user with pimpinan role via UserResource UI
+- [x] T064 [US4] Login as pimpinan user and verify all view_* permissions work (can see all menus)
+- [x] T065 [US4] Create test user with admin_lpk role via UserResource UI
+- [x] T066 [US4] Login as admin_lpk user and verify only view access (cannot create/edit/delete users)
+- [x] T067 [US4] Login as admin_lpk user and try to click "New User" button to verify it's hidden or disabled
+- [x] T068 [US4] Verify Shield's role resource shows correct permission checkboxes for each role
 
 **Checkpoint**: All user stories should now be independently functional - RBAC is fully enforced
 
@@ -170,40 +170,40 @@
 
 ### Feature Tests
 
-- [ ] T069 [P] Create LoginTest in `tests/Feature/Auth/LoginTest.php` to test super admin can login successfully
-- [ ] T070 [P] Add test_super_admin_can_access_dashboard() method to LoginTest
-- [ ] T071 [P] Add test_invalid_credentials_fail() method to LoginTest
-- [ ] T072 [P] Add test_deleted_user_cannot_login() method to LoginTest (soft delete scenario)
-- [ ] T073 [P] Create PermissionEnforcementTest in `tests/Feature/Auth/PermissionEnforcementTest.php`
-- [ ] T074 [P] Add test_instruktur_cannot_access_users_resource() method to PermissionEnforcementTest
-- [ ] T075 [P] Add test_pimpinan_can_view_all_resources() method to PermissionEnforcementTest
-- [ ] T076 [P] Add test_admin_lpk_has_view_only_access() method to PermissionEnforcementTest
-- [ ] T077 [P] Create UserResourceTest in `tests/Feature/Filament/UserResourceTest.php`
-- [ ] T078 [P] Add test_super_admin_can_create_user() method to UserResourceTest using Livewire::test()
-- [ ] T079 [P] Add test_super_admin_can_edit_user() method to UserResourceTest
-- [ ] T080 [P] Add test_super_admin_can_delete_user() method to UserResourceTest (soft delete)
-- [ ] T081 [P] Add test_super_admin_can_restore_user() method to UserResourceTest
-- [ ] T082 [P] Add test_user_creation_requires_all_fields() method to UserResourceTest (validation)
-- [ ] T083 [P] Add test_email_must_be_unique() method to UserResourceTest (validation)
-- [ ] T084 [P] Create RoleResourceTest in `tests/Feature/Filament/RoleResourceTest.php`
-- [ ] T085 [P] Add test_super_admin_can_view_roles() method to RoleResourceTest
-- [ ] T086 [P] Add test_super_admin_can_edit_role_permissions() method to RoleResourceTest
-- [ ] T087 [P] Add test_super_admin_can_create_custom_role() method to RoleResourceTest
-- [ ] T088 [P] Create AuditLogTest in `tests/Feature/AuditLogTest.php`
-- [ ] T089 [P] Add test_user_creation_is_logged() method to AuditLogTest
-- [ ] T090 [P] Add test_user_update_logs_only_dirty_attributes() method to AuditLogTest
-- [ ] T091 [P] Add test_user_deletion_is_logged() method to AuditLogTest
-- [ ] T092 [P] Create RolesAndPermissionsSeederTest in `tests/Feature/Seeders/RolesAndPermissionsSeederTest.php`
-- [ ] T093 [P] Add test_seeder_creates_8_roles() method to RolesAndPermissionsSeederTest
-- [ ] T094 [P] Add test_super_admin_has_all_permissions() method to RolesAndPermissionsSeederTest
-- [ ] T095 [P] Add test_pimpinan_has_all_view_permissions() method to RolesAndPermissionsSeederTest
-- [ ] T096 [P] Add test_instruktur_has_minimal_permissions() method to RolesAndPermissionsSeederTest
+- [x] T069 [P] Create LoginTest in `tests/Feature/Auth/LoginTest.php` to test super admin can login successfully
+- [x] T070 [P] Add test_super_admin_can_access_dashboard() method to LoginTest
+- [x] T071 [P] Add test_invalid_credentials_fail() method to LoginTest
+- [x] T072 [P] Add test_deleted_user_cannot_login() method to LoginTest (soft delete scenario)
+- [x] T073 [P] Create PermissionEnforcementTest in `tests/Feature/Auth/PermissionEnforcementTest.php`
+- [x] T074 [P] Add test_instruktur_cannot_access_users_resource() method to PermissionEnforcementTest
+- [x] T075 [P] Add test_pimpinan_can_view_all_resources() method to PermissionEnforcementTest
+- [x] T076 [P] Add test_admin_lpk_has_view_only_access() method to PermissionEnforcementTest
+- [x] T077 [P] Create UserResourceTest in `tests/Feature/Filament/UserResourceTest.php`
+- [x] T078 [P] Add test_super_admin_can_create_user() method to UserResourceTest using Livewire::test()
+- [x] T079 [P] Add test_super_admin_can_edit_user() method to UserResourceTest
+- [x] T080 [P] Add test_super_admin_can_delete_user() method to UserResourceTest (soft delete)
+- [x] T081 [P] Add test_super_admin_can_restore_user() method to UserResourceTest
+- [x] T082 [P] Add test_user_creation_requires_all_fields() method to UserResourceTest (validation)
+- [x] T083 [P] Add test_email_must_be_unique() method to UserResourceTest (validation)
+- [x] T084 [P] Create RoleResourceTest in `tests/Feature/Filament/RoleResourceTest.php`
+- [x] T085 [P] Add test_super_admin_can_view_roles() method to RoleResourceTest
+- [x] T086 [P] Add test_super_admin_can_edit_role_permissions() method to RoleResourceTest
+- [x] T087 [P] Add test_super_admin_can_create_custom_role() method to RoleResourceTest
+- [x] T088 [P] Create AuditLogTest in `tests/Feature/AuditLogTest.php`
+- [x] T089 [P] Add test_user_creation_is_logged() method to AuditLogTest
+- [x] T090 [P] Add test_user_update_logs_only_dirty_attributes() method to AuditLogTest
+- [x] T091 [P] Add test_user_deletion_is_logged() method to AuditLogTest
+- [x] T092 [P] Create RolesAndPermissionsSeederTest in `tests/Feature/Seeders/RolesAndPermissionsSeederTest.php`
+- [x] T093 [P] Add test_seeder_creates_8_roles() method to RolesAndPermissionsSeederTest
+- [x] T094 [P] Add test_super_admin_has_all_permissions() method to RolesAndPermissionsSeederTest
+- [x] T095 [P] Add test_pimpinan_has_all_view_permissions() method to RolesAndPermissionsSeederTest
+- [x] T096 [P] Add test_instruktur_has_minimal_permissions() method to RolesAndPermissionsSeederTest
 
 ### Test Execution
 
-- [ ] T097 Run all tests via `php artisan test --compact` and ensure all pass
-- [ ] T098 Run specific auth tests via `php artisan test --compact tests/Feature/Auth/`
-- [ ] T099 Run specific Filament tests via `php artisan test --compact tests/Feature/Filament/`
+- [x] T097 Run all tests via `php artisan test --compact` and ensure all pass
+- [x] T098 Run specific auth tests via `php artisan test --compact tests/Feature/Auth/`
+- [x] T099 Run specific Filament tests via `php artisan test --compact tests/Feature/Filament/`
 - [ ] T100 Fix any failing tests until all tests pass
 
 **Checkpoint**: All tests passing - feature is validated and working correctly
