@@ -116,26 +116,26 @@
 
 ### Implementation for User Story 3
 
-- [ ] T039 [US3] Generate UserResource via `php artisan make:filament-resource User --generate --soft-deletes --no-interaction`
-- [ ] T040 [US3] Customize UserResource form in `app/Filament/Resources/UserResource.php` to add name field (TextInput, required, max 255)
-- [ ] T041 [US3] Add email field to UserResource form in `app/Filament/Resources/UserResource.php` (TextInput, email, required, unique, max 255)
-- [ ] T042 [US3] Add password field to UserResource form in `app/Filament/Resources/UserResource.php` (TextInput, password, required on create, min 8, dehydrated when filled)
-- [ ] T043 [US3] Add entity field to UserResource form in `app/Filament/Resources/UserResource.php` (Select, options from EntityType::options(), required, not native)
-- [ ] T044 [US3] Add roles relationship field to UserResource form in `app/Filament/Resources/UserResource.php` (Select, multiple, relationship to roles, preload, searchable, required)
-- [ ] T045 [US3] Customize UserResource table in `app/Filament/Resources/UserResource.php` to add name column (searchable, sortable)
-- [ ] T046 [US3] Add email column to UserResource table in `app/Filament/Resources/UserResource.php` (searchable, sortable, copyable)
-- [ ] T047 [US3] Add entity column to UserResource table in `app/Filament/Resources/UserResource.php` (badge, color from enum, display value)
-- [ ] T048 [US3] Add roles column to UserResource table in `app/Filament/Resources/UserResource.php` (badge, separator, searchable)
-- [ ] T049 [US3] Add created_at column to UserResource table in `app/Filament/Resources/UserResource.php` (dateTime, sortable, hidden by default)
-- [ ] T050 [US3] Add entity filter to UserResource table in `app/Filament/Resources/UserResource.php` (SelectFilter, options from EntityType)
-- [ ] T051 [US3] Add roles filter to UserResource table in `app/Filament/Resources/UserResource.php` (SelectFilter, relationship, multiple, preload)
-- [ ] T052 [US3] Generate UserPolicy via `php artisan shield:generate --resource=UserResource --no-interaction`
-- [ ] T053 [US3] Test creating new user via UserResource UI with all fields (name, email, password, entity, roles)
-- [ ] T054 [US3] Test editing existing user via UserResource UI to change roles
-- [ ] T055 [US3] Test soft deleting user via UserResource UI and verify user cannot login
-- [ ] T056 [US3] Test restoring soft-deleted user via UserResource UI and verify user can login again
-- [ ] T057 [US3] Verify activity log captures user creation in activity_log table
-- [ ] T058 [US3] Verify activity log captures user update in activity_log table (only dirty fields)
+- [x] T039 [US3] Generate UserResource via `php artisan make:filament-resource User --generate --soft-deletes --no-interaction`
+- [x] T040 [US3] Customize UserResource form in `app/Filament/Resources/UserResource.php` to add name field (TextInput, required, max 255)
+- [x] T041 [US3] Add email field to UserResource form in `app/Filament/Resources/UserResource.php` (TextInput, email, required, unique, max 255)
+- [x] T042 [US3] Add password field to UserResource form in `app/Filament/Resources/UserResource.php` (TextInput, password, required on create, min 8, dehydrated when filled)
+- [x] T043 [US3] Add entity field to UserResource form in `app/Filament/Resources/UserResource.php` (Select, options from EntityType::options(), required, not native)
+- [x] T044 [US3] Add roles relationship field to UserResource form in `app/Filament/Resources/UserResource.php` (Select, multiple, relationship to roles, preload, searchable, required)
+- [x] T045 [US3] Customize UserResource table in `app/Filament/Resources/UserResource.php` to add name column (searchable, sortable)
+- [x] T046 [US3] Add email column to UserResource table in `app/Filament/Resources/UserResource.php` (searchable, sortable, copyable)
+- [x] T047 [US3] Add entity column to UserResource table in `app/Filament/Resources/UserResource.php` (badge, color from enum, display value)
+- [x] T048 [US3] Add roles column to UserResource table in `app/Filament/Resources/UserResource.php` (badge, separator, searchable)
+- [x] T049 [US3] Add created_at column to UserResource table in `app/Filament/Resources/UserResource.php` (dateTime, sortable, hidden by default)
+- [x] T050 [US3] Add entity filter to UserResource table in `app/Filament/Resources/UserResource.php` (SelectFilter, options from EntityType)
+- [x] T051 [US3] Add roles filter to UserResource table in `app/Filament/Resources/UserResource.php` (SelectFilter, relationship, multiple, preload)
+- [x] T052 [US3] Generate UserPolicy via `php artisan shield:generate --resource=UserResource --no-interaction`
+- [x] T053 [US3] Test creating new user via UserResource UI with all fields (name, email, password, entity, roles)
+- [x] T054 [US3] Test editing existing user via UserResource UI to change roles
+- [x] T055 [US3] Test soft deleting user via UserResource UI and verify user cannot login
+- [x] T056 [US3] Test restoring soft-deleted user via UserResource UI and verify user can login again
+- [x] T057 [US3] Verify activity log captures user creation in activity_log table
+- [x] T058 [US3] Verify activity log captures user update in activity_log table (only dirty fields)
 
 **Checkpoint**: At this point, User Story 3 should be fully functional - admin can CRUD users with entity and roles
 
