@@ -64,3 +64,121 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+---
+
+## Karyawan LPK Management Feature
+
+The Karyawan LPK Management module provides a comprehensive system for managing employee data specific to LPK (Lembaga Pelatihan Kerja) institutions. This feature includes CRUD operations, honor/compensation management, certificate management, and self-service profile access for instructors.
+
+### Features
+
+**User Story 1: Basic Employee Management (US1)**
+- Full CRUD operations for LPK employees
+- Employee data includes: personal information (NIK, name, email, birth date, gender, address, phone)
+- Employment information (position/jabatan, employment status, join date)
+- Entity isolation (automatic assignment to LPK)
+- Soft delete with restore capability
+- Activity logging for all operations
+
+**User Story 2: Honor/Compensation Management (US2)**
+- Record base salary (honor_pokok) and hourly teaching rate (honor_per_jam)
+- Hourly rate visible only for Instructor positions
+- Filtering by compensation status (with/without honor)
+- Role-based access: Keuangan LPK can update honor fields only
+
+**User Story 3: Certificate Management (US3)**
+- Upload and store competency certificates (sertifikat kompetensi)
+- Private file storage with signed download URLs
+- Instructor-specific certificate display
+- Download authorization for admin, leadership, and employees (own certificate)
+
+**User Story 4: Self-Service Profile (US4)**
+- Instructors can view their own profile
+- Edit personal information (address and phone number)
+- Download their own certificate
+- Email-based access control prevents cross-access
+
+### Role-Based Access Control
+
+- **Admin LPK** (admin_lpk): Full CRUD access, all honor fields, certificate management
+- **Finance/Keuangan LPK** (keuangan_lpk): Update honor fields only
+- **Leadership/Pimpinan** (pimpinan): View employees, download certificates
+- **Instructor/Instruktur** (instruktur): Self-service profile, own certificate download
+
+### Setup Instructions
+
+1. **Database Setup**
+   ```bash
+   php artisan migrate
+   ```
+
+2. **Seed Sample Data**
+   ```bash
+   php artisan db:seed --class=EmployeeLPKSeeder
+   ```
+
+3. **Configure File Storage**
+   Ensure `.env` includes:
+   ```
+   FILESYSTEM_DISK_PRIVATE=private
+   ```
+
+4. **Access the Admin Panel**
+   - Navigate to `/admin` in your browser
+   - Login with admin credentials
+   - Access "Data Master > Karyawan LPK" for employee management
+   - Instructors access "Akun Saya > Profil Saya" for self-service profile
+
+### Testing
+
+Run the test suite for the Karyawan LPK feature:
+```bash
+# Honor Management Tests
+php artisan test tests/Feature/EmployeeLPKHonorManagementTest.php
+
+# Certificate Management Tests
+php artisan test tests/Feature/EmployeeLPKSertifikatManagementTest.php
+
+# All tests
+php artisan test
+```
+
+### File Structure
+
+```
+app/
+  Models/
+    EmployeeLPK.php              # Employee model with soft deletes & activity logging
+  Filament/
+    Resources/
+      EmployeeLPKResource.php          # Main admin CRUD interface
+      EmployeeLPKProfileResource.php   # Self-service profile for employees
+  Policies/
+    EmployeeLPKPolicy.php        # Authorization policies
+  Enums/
+    JabatanLPK.php               # Position enum (Instruktur, AdminLPK, Staff)
+    StatusKepegawaian.php        # Employment status enum (Aktif, Cuti, Resign)
+
+database/
+  migrations/
+    2026_01_13_000001_create_karyawan_lpk_table.php
+  factories/
+    EmployeeLPKFactory.php
+  seeders/
+    EmployeeLPKSeeder.php
+
+tests/
+  Feature/
+    EmployeeLPKHonorManagementTest.php     # 12 tests
+    EmployeeLPKSertifikatManagementTest.php # 10 tests
+```
+
+### For More Information
+
+See [specs/002-karyawan-lpk/](specs/002-karyawan-lpk/) for detailed specifications:
+- `spec.md` - Feature requirements and user stories
+- `plan.md` - Technical architecture and design decisions
+- `quickstart.md` - Step-by-step usage examples
+- `data-model.md` - Database schema documentation
+
