@@ -292,7 +292,7 @@
 - [ ] T150 Security audit: Verify entity isolation (Instruktur cannot see karyawan_pt records)
 - [x] T151 [P] Add README.md section documenting Karyawan LPK feature setup and usage
 - [x] T152 [P] Update .env.example with required FILESYSTEM_DISK_PRIVATE=private configuration
-- [ ] T153 Commit all changes with message: "feat(002): Complete Karyawan LPK Management feature with CRUD, honor, sertifikat, self-service"
+- [x] T153 Commit all changes with message: "feat(002): Complete Karyawan LPK Management feature with CRUD, honor, sertifikat, self-service"
 - [ ] T154 Create pull request from 002-karyawan-lpk to main with quickstart.md validation checklist
 
 **Final Checkpoint**: Feature complete, tested, documented, and ready for code review.

@@ -4,7 +4,7 @@ namespace App\Filament\Resources\EmployeeLPKResource\Pages;
 
 use App\Filament\Resources\EmployeeLPKResource;
 use Filament\Resources\Pages\ListRecords;
-use Filament\Resources\Pages\ListRecords\Tab;
+use Filament\Schemas\Components\Tabs\Tab;
 
 class ListEmployeesLPK extends ListRecords
 {
