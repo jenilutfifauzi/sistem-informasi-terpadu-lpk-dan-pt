@@ -8,6 +8,7 @@ use App\Filament\Resources\EmployeeLPKResource\Pages;
 use App\Models\EmployeeLPK;
 use Filament\Actions;
 use Filament\Forms;
+use Filament\Forms\Components\Utilities\Get;
 use Filament\Infolists;
 use Filament\Resources\Resource;
 use Filament\Schemas;
@@ -124,7 +125,7 @@ class EmployeeLPKResource extends Resource
                             ->minValue(0)
                             ->prefix('Rp ')
                             ->suffix(' / jam')
-                            ->visible(fn (Forms\Get $get) => $get('jabatan') === JabatanLPK::Instruktur),
+                            ->visible(fn (Get $get) => $get('jabatan') === JabatanLPK::Instruktur),
                     ])
                     ->columns(2),
 
@@ -142,7 +143,7 @@ class EmployeeLPKResource extends Resource
                             ->preserveFilenames(),
                     ])
                     ->columns(1)
-                    ->visible(fn (Forms\Get $get) => $get('jabatan') === JabatanLPK::Instruktur),
+                    ->visible(fn (Get $get) => $get('jabatan') === JabatanLPK::Instruktur),
             ]);
     }
 
