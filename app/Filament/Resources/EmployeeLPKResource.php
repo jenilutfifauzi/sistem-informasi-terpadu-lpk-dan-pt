@@ -276,14 +276,9 @@ class EmployeeLPKResource extends Resource
                 // Sertifikat Section
                 Schemas\Components\Section::make('Sertifikat Kompetensi')
                     ->schema([
-                        Infolists\Components\Actions::make([
-                            Infolists\Components\Actions\Action::make('download')
-                                ->label('Unduh Sertifikat')
-                                ->icon('heroicon-o-arrow-down-tray')
-                                ->url(fn (EmployeeLPK $record) => $record->sertifikat_download_url)
-                                ->openUrlInNewTab()
-                                ->visible(fn (EmployeeLPK $record) => $record->sertifikat_download_url && auth()->user()->can('downloadSertifikat', $record)),
-                        ]),
+                        Infolists\Components\TextEntry::make('sertifikat_path')
+                            ->label('Status Sertifikat')
+                            ->state(fn (EmployeeLPK $record) => $record->sertifikat_path ? '✓ Tersedia' : '✗ Belum ada'),
                     ])
                     ->visible(fn (EmployeeLPK $record) => $record->sertifikat_path),
             ]);
