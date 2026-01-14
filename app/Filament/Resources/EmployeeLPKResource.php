@@ -7,6 +7,7 @@ use App\Enums\StatusKepegawaian;
 use App\Filament\Resources\EmployeeLPKResource\Pages;
 use App\Models\EmployeeLPK;
 use Filament\Forms;
+use Filament\Infolists;
 use Filament\Resources\Resource;
 use Filament\Schemas;
 use Filament\Tables;
@@ -15,6 +16,8 @@ use Filament\Tables\Table;
 class EmployeeLPKResource extends Resource
 {
     protected static ?string $model = EmployeeLPK::class;
+
+    protected static ?string $slug = 'karyawan-lpks';
 
     protected static ?int $navigationSort = 1;
 
@@ -216,6 +219,73 @@ class EmployeeLPKResource extends Resource
                 ]),
             ])
             ->defaultSort('tanggal_bergabung', 'desc');
+    }
+
+    public static function infolist(Schemas\Schema $schema): Schemas\Schema
+    {
+        return $schema
+            ->schema([
+                // Personal Information Section
+                Infolists\Components\Section::make('Informasi Personal')
+                    ->schema([
+                        Infolists\Components\TextEntry::make('nama_lengkap')
+                            ->label('Nama Lengkap'),
+                        Infolists\Components\TextEntry::make('nik')
+                            ->label('NIK'),
+                        Infolists\Components\TextEntry::make('email')
+                            ->label('Email'),
+                        Infolists\Components\TextEntry::make('tanggal_lahir')
+                            ->label('Tanggal Lahir')
+                            ->date('d M Y'),
+                        Infolists\Components\TextEntry::make('jenis_kelamin')
+                            ->label('Jenis Kelamin'),
+                        Infolists\Components\TextEntry::make('alamat')
+                            ->label('Alamat'),
+                        Infolists\Components\TextEntry::make('telepon')
+                            ->label('Telepon'),
+                    ])
+                    ->columns(2),
+
+                // Employment Information Section
+                Infolists\Components\Section::make('Informasi Kepegawaian')
+                    ->schema([
+                        Infolists\Components\TextEntry::make('jabatan')
+                            ->label('Jabatan'),
+                        Infolists\Components\TextEntry::make('status')
+                            ->label('Status'),
+                        Infolists\Components\TextEntry::make('tanggal_bergabung')
+                            ->label('Tanggal Bergabung')
+                            ->date('d M Y'),
+                    ])
+                    ->columns(2),
+
+                // Compensation Section
+                Infolists\Components\Section::make('Kompensasi')
+                    ->schema([
+                        Infolists\Components\TextEntry::make('honor_pokok')
+                            ->label('Honor Pokok')
+                            ->money('IDR', locale: 'id'),
+                        Infolists\Components\TextEntry::make('honor_per_jam')
+                            ->label('Honor per Jam')
+                            ->money('IDR', locale: 'id')
+                            ->visible(fn (EmployeeLPK $record) => $record->jabatan === JabatanLPK::Instruktur),
+                    ])
+                    ->columns(2),
+
+                // Sertifikat Section
+                Infolists\Components\Section::make('Sertifikat Kompetensi')
+                    ->schema([
+                        Infolists\Components\Actions::make([
+                            Infolists\Components\Actions\Action::make('download')
+                                ->label('Unduh Sertifikat')
+                                ->icon('heroicon-o-arrow-down-tray')
+                                ->url(fn (EmployeeLPK $record) => $record->sertifikat_download_url)
+                                ->openUrlInNewTab()
+                                ->visible(fn (EmployeeLPK $record) => $record->sertifikat_download_url && auth()->user()->can('downloadSertifikat', $record)),
+                        ]),
+                    ])
+                    ->visible(fn (EmployeeLPK $record) => $record->sertifikat_path),
+            ]);
     }
 
     public static function getRelations(): array

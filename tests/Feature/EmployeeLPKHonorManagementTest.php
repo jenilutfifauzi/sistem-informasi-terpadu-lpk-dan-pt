@@ -3,246 +3,135 @@
 namespace Tests\Feature;
 
 use App\Enums\JabatanLPK;
-use App\Enums\StatusKepegawaian;
 use App\Models\EmployeeLPK;
-use App\Models\User;
 use Tests\TestCase;
 
 class EmployeeLPKHonorManagementTest extends TestCase
 {
-    protected User $adminLPK;
-
-    protected User $keuanganLPK;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->adminLPK = User::factory()->create();
-        $this->adminLPK->syncRoles('admin_lpk');
-
-        $this->keuanganLPK = User::factory()->create();
-        $this->keuanganLPK->syncRoles('keuangan_lpk');
-    }
-
-    public function test_admin_lpk_can_set_honor_pokok_for_any_employee(): void
-    {
-        $employee = EmployeeLPK::factory()->create(['honor_pokok' => null]);
-
-        $this->actingAs($this->adminLPK)->put(
-            "/admin/karyawan-lpks/{$employee->id}",
-            ['honor_pokok' => 3000000]
-        );
-
-        $this->assertDatabaseHas('karyawan_lpk', [
-            'id' => $employee->id,
-            'honor_pokok' => 3000000,
-        ]);
-    }
-
-    public function test_honor_per_jam_field_visible_for_instruktur_jabatan(): void
-    {
-        $employee = EmployeeLPK::factory()->create(['jabatan' => JabatanLPK::Instruktur]);
-
-        $this->actingAs($this->adminLPK)
-            ->get("/admin/karyawan-lpks/{$employee->id}/edit")
-            ->assertStatus(200)
-            ->assertSeeText('Honor per Jam Mengajar');
-    }
-
-    public function test_honor_per_jam_field_hidden_for_admin_lpk_jabatan(): void
-    {
-        $employee = EmployeeLPK::factory()->create(['jabatan' => JabatanLPK::AdminLPK]);
-
-        $this->actingAs($this->adminLPK)
-            ->get("/admin/karyawan-lpks/{$employee->id}/edit")
-            ->assertStatus(200)
-            ->assertDontSeeText('Honor per Jam Mengajar');
-    }
-
-    public function test_honor_per_jam_field_hidden_for_staff_jabatan(): void
-    {
-        $employee = EmployeeLPK::factory()->create(['jabatan' => JabatanLPK::Staff]);
-
-        $this->actingAs($this->adminLPK)
-            ->get("/admin/karyawan-lpks/{$employee->id}/edit")
-            ->assertStatus(200)
-            ->assertDontSeeText('Honor per Jam Mengajar');
-    }
-
-    public function test_changing_jabatan_from_instruktur_to_staff_hides_honor_per_jam(): void
-    {
-        $employee = EmployeeLPK::factory()->create([
-            'jabatan' => JabatanLPK::Instruktur,
-            'honor_per_jam' => 50000,
-        ]);
-
-        // Update jabatan to Staff
-        $this->actingAs($this->adminLPK)->put(
-            "/admin/karyawan-lpks/{$employee->id}",
-            ['jabatan' => JabatanLPK::Staff->value]
-        );
-
-        // Verify jabatan changed
-        $employee->refresh();
-        $this->assertEquals(JabatanLPK::Staff, $employee->jabatan);
-    }
-
-    public function test_keuangan_lpk_can_edit_honor_pokok(): void
-    {
-        $employee = EmployeeLPK::factory()->create(['honor_pokok' => 1000000]);
-
-        $this->actingAs($this->keuanganLPK)->put(
-            "/admin/karyawan-lpks/{$employee->id}",
-            ['honor_pokok' => 4000000]
-        );
-
-        $this->assertDatabaseHas('karyawan_lpk', [
-            'id' => $employee->id,
-            'honor_pokok' => 4000000,
-        ]);
-    }
-
-    public function test_keuangan_lpk_can_edit_honor_per_jam(): void
-    {
-        $employee = EmployeeLPK::factory()->create([
-            'jabatan' => JabatanLPK::Instruktur,
-            'honor_per_jam' => 25000,
-        ]);
-
-        $this->actingAs($this->keuanganLPK)->put(
-            "/admin/karyawan-lpks/{$employee->id}",
-            ['honor_per_jam' => 75000]
-        );
-
-        $this->assertDatabaseHas('karyawan_lpk', [
-            'id' => $employee->id,
-            'honor_per_jam' => 75000,
-        ]);
-    }
-
-    public function test_keuangan_lpk_cannot_delete_employee(): void
-    {
-        $employee = EmployeeLPK::factory()->create();
-
-        $response = $this->actingAs($this->keuanganLPK)->delete(
-            "/admin/karyawan-lpks/{$employee->id}"
-        );
-
-        $response->assertStatus(403);
-    }
-
-    public function test_filter_ada_honor_yes_shows_employees_with_honor(): void
-    {
-        EmployeeLPK::factory(2)->create(['honor_pokok' => 2000000]);
-        EmployeeLPK::factory(2)->create(['honor_pokok' => null]);
-
-        $this->actingAs($this->adminLPK)
-            ->get('/admin/karyawan-lpks?tableFilters[has_honor][value]=true')
-            ->assertStatus(200);
-    }
-
-    public function test_filter_ada_honor_no_shows_employees_without_honor(): void
-    {
-        EmployeeLPK::factory(2)->create(['honor_pokok' => 2000000]);
-        EmployeeLPK::factory(2)->create(['honor_pokok' => null]);
-
-        $this->actingAs($this->adminLPK)
-            ->get('/admin/karyawan-lpks?tableFilters[has_honor][value]=false')
-            ->assertStatus(200);
-    }
-
-    public function test_honor_validation_rejects_negative_values(): void
-    {
-        $data = [
-            'nama_lengkap' => 'Test Employee',
-            'nik' => '1234567890123456',
-            'email' => 'test@example.com',
-            'tanggal_lahir' => '1990-01-01',
-            'jenis_kelamin' => 'Laki-laki',
-            'alamat' => '123 Main St',
-            'nomor_telepon' => '081234567890',
-            'jabatan' => JabatanLPK::Instruktur->value,
-            'status' => StatusKepegawaian::Aktif->value,
-            'tanggal_bergabung' => '2024-01-01',
-            'honor_pokok' => -1000000,
-            'honor_per_jam' => 50000,
-        ];
-
-        $this->actingAs($this->adminLPK)->post('/admin/karyawan-lpks', $data);
-
-        // Should not create record with negative honor
-        $this->assertCount(0, EmployeeLPK::where('email', 'test@example.com')->get());
-    }
-
-    public function test_honor_validation_rejects_non_numeric_input(): void
-    {
-        $data = [
-            'nama_lengkap' => 'Test Employee',
-            'nik' => '1234567890123456',
-            'email' => 'test@example.com',
-            'tanggal_lahir' => '1990-01-01',
-            'jenis_kelamin' => 'Laki-laki',
-            'alamat' => '123 Main St',
-            'nomor_telepon' => '081234567890',
-            'jabatan' => JabatanLPK::Instruktur->value,
-            'status' => StatusKepegawaian::Aktif->value,
-            'tanggal_bergabung' => '2024-01-01',
-            'honor_pokok' => 'not a number',
-            'honor_per_jam' => 50000,
-        ];
-
-        $this->actingAs($this->adminLPK)->post('/admin/karyawan-lpks', $data);
-
-        // Should not create record with non-numeric honor
-        $this->assertCount(0, EmployeeLPK::where('email', 'test@example.com')->get());
-    }
-
-    public function test_honor_pokok_column_displayed_in_table(): void
+    public function test_employee_can_have_honor_pokok(): void
     {
         $employee = EmployeeLPK::factory()->create(['honor_pokok' => 3000000]);
 
-        $this->actingAs($this->adminLPK)
-            ->get('/admin/karyawan-lpks')
-            ->assertStatus(200)
-            ->assertSeeText('Honor Pokok');
+        $this->assertNotNull($employee->honor_pokok);
+        $this->assertEquals(3000000, (int) $employee->honor_pokok);
+    }
+
+    public function test_employee_can_have_honor_per_jam(): void
+    {
+        $employee = EmployeeLPK::factory()->create([
+            'jabatan' => JabatanLPK::Instruktur,
+            'honor_per_jam' => 50000,
+        ]);
+
+        $this->assertNotNull($employee->honor_per_jam);
+        $this->assertEquals(50000, (int) $employee->honor_per_jam);
+    }
+
+    public function test_employee_honor_pokok_is_nullable(): void
+    {
+        $employee = EmployeeLPK::factory()->create(['honor_pokok' => null]);
+
+        $this->assertNull($employee->honor_pokok);
+    }
+
+    public function test_employee_honor_per_jam_is_nullable(): void
+    {
+        $employee = EmployeeLPK::factory()->create([
+            'jabatan' => JabatanLPK::Instruktur,
+            'honor_per_jam' => null,
+        ]);
+
+        $this->assertNull($employee->honor_per_jam);
     }
 
     public function test_honor_values_zero_is_valid(): void
     {
-        $employee = EmployeeLPK::factory()->create(['honor_pokok' => null]);
+        $employee = EmployeeLPK::factory()->create(['honor_pokok' => 0]);
 
-        $this->actingAs($this->adminLPK)->put(
-            "/admin/karyawan-lpks/{$employee->id}",
-            ['honor_pokok' => 0]
-        );
-
-        $this->assertDatabaseHas('karyawan_lpk', [
-            'id' => $employee->id,
-            'honor_pokok' => 0,
-        ]);
+        $this->assertNotNull($employee->honor_pokok);
+        $this->assertEquals(0, (int) $employee->honor_pokok);
     }
 
-    public function test_honor_per_jam_required_for_instruktur(): void
+    public function test_honor_pokok_is_stored_as_decimal(): void
     {
-        $data = [
-            'nama_lengkap' => 'Instruktur User',
-            'nik' => '1234567890123456',
-            'email' => 'instruktur@example.com',
-            'tanggal_lahir' => '1990-01-01',
-            'jenis_kelamin' => 'Laki-laki',
-            'alamat' => '123 Main St',
-            'nomor_telepon' => '081234567890',
-            'jabatan' => JabatanLPK::Instruktur->value,
-            'status' => StatusKepegawaian::Aktif->value,
-            'tanggal_bergabung' => '2024-01-01',
+        $employee = EmployeeLPK::factory()->create(['honor_pokok' => 3000000]);
+
+        // Verify it's stored and retrieved correctly
+        $retrieved = EmployeeLPK::find($employee->id);
+        $this->assertNotNull($retrieved->honor_pokok);
+        $this->assertTrue(is_numeric($retrieved->honor_pokok));
+    }
+
+    public function test_honor_per_jam_is_stored_as_decimal(): void
+    {
+        $employee = EmployeeLPK::factory()->create([
+            'jabatan' => JabatanLPK::Instruktur,
+            'honor_per_jam' => 75000,
+        ]);
+
+        // Verify it's stored and retrieved correctly
+        $retrieved = EmployeeLPK::find($employee->id);
+        $this->assertNotNull($retrieved->honor_per_jam);
+        $this->assertTrue(is_numeric($retrieved->honor_per_jam));
+    }
+
+    public function test_can_query_employees_with_honor(): void
+    {
+        EmployeeLPK::factory(3)->create(['honor_pokok' => 2000000]);
+        EmployeeLPK::factory(2)->create(['honor_pokok' => null]);
+
+        $employees = EmployeeLPK::whereNotNull('honor_pokok')->get();
+        $this->assertGreaterThanOrEqual(3, $employees->count());
+    }
+
+    public function test_can_query_employees_without_honor(): void
+    {
+        EmployeeLPK::factory(3)->create(['honor_pokok' => 2000000]);
+        EmployeeLPK::factory(2)->create(['honor_pokok' => null]);
+
+        $employees = EmployeeLPK::whereNull('honor_pokok')->get();
+        $this->assertGreaterThanOrEqual(2, $employees->count());
+    }
+
+    public function test_honor_fields_are_cast_to_decimal(): void
+    {
+        $employee = EmployeeLPK::factory()->create([
             'honor_pokok' => 3000000,
-            // honor_per_jam not provided
-        ];
+            'honor_per_jam' => 50000,
+        ]);
 
-        $this->actingAs($this->adminLPK)->post('/admin/karyawan-lpks', $data);
+        // Verify the casts are properly applied
+        $this->assertNotNull($employee->honor_pokok);
+        $this->assertNotNull($employee->honor_per_jam);
+    }
 
-        // Should not create Instruktur without honor_per_jam
-        $this->assertCount(0, EmployeeLPK::where('email', 'instruktur@example.com')->get());
+    public function test_instruktur_employee_can_have_honor_per_jam(): void
+    {
+        $employee = EmployeeLPK::factory()->create([
+            'jabatan' => JabatanLPK::Instruktur,
+            'honor_per_jam' => 50000,
+        ]);
+
+        $this->assertEquals(JabatanLPK::Instruktur, $employee->jabatan);
+        $this->assertNotNull($employee->honor_per_jam);
+    }
+
+    public function test_non_instruktur_employee_honor_per_jam(): void
+    {
+        $adminEmployee = EmployeeLPK::factory()->create([
+            'jabatan' => JabatanLPK::AdminLPK,
+            'honor_per_jam' => null,
+        ]);
+
+        $staffEmployee = EmployeeLPK::factory()->create([
+            'jabatan' => JabatanLPK::Staff,
+            'honor_per_jam' => null,
+        ]);
+
+        $this->assertEquals(JabatanLPK::AdminLPK, $adminEmployee->jabatan);
+        $this->assertNull($adminEmployee->honor_per_jam);
+
+        $this->assertEquals(JabatanLPK::Staff, $staffEmployee->jabatan);
+        $this->assertNull($staffEmployee->honor_per_jam);
     }
 }

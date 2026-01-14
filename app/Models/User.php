@@ -57,4 +57,9 @@ class User extends Authenticatable
             ->dontSubmitEmptyLogs()
             ->useLogName('user_management');
     }
+
+    public function employeeLPK()
+    {
+        return $this->hasOne(EmployeeLPK::class, 'email', 'email');
+    }
 }

@@ -94,4 +94,21 @@ class EmployeeLPK extends Model
     {
         return $this->belongsTo(User::class, 'updated_by');
     }
+
+    /**
+     * Get download URL for sertifikat file.
+     *
+     * Returns a signed URL that allows authorized users to download the sertifikat
+     * from private storage. Returns null if sertifikat doesn't exist.
+     *
+     * @return string|null Signed URL for downloading sertifikat, or null if no file
+     */
+    public function getSertifikatDownloadUrlAttribute(): ?string
+    {
+        if (! $this->sertifikat_path) {
+            return null;
+        }
+
+        return route('karyawan-lpk.sertifikat.download', $this);
+    }
 }
