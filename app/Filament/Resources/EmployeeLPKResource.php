@@ -134,8 +134,9 @@ class EmployeeLPKResource extends Resource
                     ->schema([
                         Forms\Components\FileUpload::make('sertifikat_path')
                             ->label('File Sertifikat')
-                            ->disk('private')
+                            ->disk('local')
                             ->directory('certificates')
+                            ->visibility('private')
                             ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
                             ->maxSize(5120) // 5MB in KB
                             ->preserveFilenames(),
