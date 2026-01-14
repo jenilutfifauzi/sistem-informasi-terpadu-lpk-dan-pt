@@ -227,7 +227,7 @@ class EmployeeLPKResource extends Resource
         return $schema
             ->schema([
                 // Personal Information Section
-                Infolists\Components\Section::make('Informasi Personal')
+                Schemas\Components\Section::make('Informasi Personal')
                     ->schema([
                         Infolists\Components\TextEntry::make('nama_lengkap')
                             ->label('Nama Lengkap'),
@@ -248,7 +248,7 @@ class EmployeeLPKResource extends Resource
                     ->columns(2),
 
                 // Employment Information Section
-                Infolists\Components\Section::make('Informasi Kepegawaian')
+                Schemas\Components\Section::make('Informasi Kepegawaian')
                     ->schema([
                         Infolists\Components\TextEntry::make('jabatan')
                             ->label('Jabatan'),
@@ -261,7 +261,7 @@ class EmployeeLPKResource extends Resource
                     ->columns(2),
 
                 // Compensation Section
-                Infolists\Components\Section::make('Kompensasi')
+                Schemas\Components\Section::make('Kompensasi')
                     ->schema([
                         Infolists\Components\TextEntry::make('honor_pokok')
                             ->label('Honor Pokok')
@@ -274,7 +274,7 @@ class EmployeeLPKResource extends Resource
                     ->columns(2),
 
                 // Sertifikat Section
-                Infolists\Components\Section::make('Sertifikat Kompetensi')
+                Schemas\Components\Section::make('Sertifikat Kompetensi')
                     ->schema([
                         Infolists\Components\Actions::make([
                             Infolists\Components\Actions\Action::make('download')
