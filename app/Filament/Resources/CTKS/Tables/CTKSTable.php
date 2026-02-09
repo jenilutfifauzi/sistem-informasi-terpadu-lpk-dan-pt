@@ -3,9 +3,7 @@
 namespace App\Filament\Resources\CTKS\Tables;
 
 use App\Enums\EntityType;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\EditAction;
-use Filament\Actions\ViewAction;
+use App\Filament\Resources\CTKS\CTKResource;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
@@ -139,13 +137,6 @@ class CTKSTable
                         };
                     }),
             ])
-            ->actions([
-                ViewAction::make(),
-                EditAction::make(),
-                DeleteAction::make(),
-            ])
-            ->bulkActions([
-                //
-            ]);
+            ->recordUrl(fn ($record) => CTKResource::getUrl('view', ['record' => $record]));
     }
 }
