@@ -12,7 +12,8 @@ class OPPSection
 {
     public static function make(): Section
     {
-        return Section::make('OPP & Departure')
+        return Section::make('14-15. OPP & Departure (Terbang)')
+            ->description(fn ($record) => self::getStatusBadge($record, 14, 15) ?? 'Pencatatan OPP dan keberangkatan CTK')
             ->schema([
                 Radio::make('opp_status')
                     ->label('Status OPP')
@@ -53,7 +54,23 @@ class OPPSection
                     ->visible(fn ($get) => $get('opp_status') === 'Diterima'),
             ])
             ->columns(2)
-            ->collapsible()
-            ->description('Informasi OPP (Offer of Employment) dan keberangkatan. Setelah OPP diterima, sistem akan mengunci data CTK dari perubahan (final stage).');
+            ->collapsible();
+    }
+
+    protected static function getStatusBadge($record, int ...$stages): ?string
+    {
+        if (! $record) {
+            return null;
+        }
+
+        $statuses = [];
+        foreach ($stages as $stage) {
+            $stageAttribute = "stage{$stage}_complete";
+            $isComplete = $record->$stageAttribute ?? false;
+            $icon = $isComplete ? '✅' : '⬜';
+            $statuses[] = "{$icon} Stage {$stage}";
+        }
+
+        return implode(' | ', $statuses);
     }
 }

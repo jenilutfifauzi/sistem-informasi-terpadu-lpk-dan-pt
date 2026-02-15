@@ -271,22 +271,24 @@ class CTK extends Model
     }
 
     /**
-     * Stage 3: Soal/Berkas - Complete when document uploaded AND status = Lengkap
+     * Stage 3: Soal/Berkas - Complete when at least 1 document uploaded (excluding Paspor)
      */
     public function getStage3CompleteAttribute(): bool
     {
-        return $this->soal_berkas_status === 'Lengkap' &&
-            $this->documents()
-                ->where('document_type', \App\Enums\DocumentType::SoalBerkas)
-                ->exists();
+        return $this->documents()
+            ->where('document_type', '!=', \App\Enums\DocumentType::Paspor)
+            ->exists();
     }
 
     /**
-     * Stage 4: Paspor - Complete when paspor_number is filled
+     * Stage 4: Paspor - Complete when paspor_number is filled AND paspor document uploaded
      */
     public function getStage4CompleteAttribute(): bool
     {
-        return ! empty($this->paspor_number);
+        return ! empty($this->paspor_number) &&
+            $this->documents()
+                ->where('document_type', \App\Enums\DocumentType::Paspor)
+                ->exists();
     }
 
     /**

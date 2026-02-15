@@ -14,8 +14,8 @@ class MCUSection
 {
     public static function make(): Section
     {
-        return Section::make('MCU (Medical Check-Up)')
-            ->description('Rekam hasil pemeriksaan kesehatan untuk calon TKI')
+        return Section::make('1. MCU (Medical Check-Up)')
+            ->description(fn ($record) => self::getStatusBadge($record, 1) ?? 'Rekam hasil pemeriksaan kesehatan untuk calon TKI')
             ->schema([
                 Repeater::make('mcuRecords')
                     ->relationship('mcuRecords')
@@ -74,5 +74,19 @@ class MCUSection
             ->collapsible()
             ->persistCollapsed()
             ->columns(1);
+    }
+
+    protected static function getStatusBadge($record, int $stage): ?string
+    {
+        if (! $record) {
+            return null;
+        }
+
+        $stageAttribute = "stage{$stage}_complete";
+        $isComplete = $record->$stageAttribute ?? false;
+        $icon = $isComplete ? '✅' : '⬜';
+        $status = $isComplete ? 'Selesai' : 'Belum Selesai';
+
+        return "{$icon} Stage {$stage}: {$status}";
     }
 }

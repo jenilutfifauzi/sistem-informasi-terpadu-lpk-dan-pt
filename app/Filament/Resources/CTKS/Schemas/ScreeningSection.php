@@ -16,8 +16,8 @@ class ScreeningSection
 {
     public static function make(): Section
     {
-        return Section::make('Screening Interview')
-            ->description('Pencatatan screening interview di PT')
+        return Section::make('6-7. Screening Interview')
+            ->description(fn ($record) => self::getStatusBadge($record, 6, 7) ?? 'Pencatatan screening interview di PT')
             ->schema([
                 Placeholder::make('screening_summary')
                     ->label('Ringkasan Screening')
@@ -95,5 +95,22 @@ class ScreeningSection
             ])
             ->collapsible()
             ->collapsed(false);
+    }
+
+    protected static function getStatusBadge($record, int ...$stages): ?string
+    {
+        if (! $record) {
+            return null;
+        }
+
+        $statuses = [];
+        foreach ($stages as $stage) {
+            $stageAttribute = "stage{$stage}_complete";
+            $isComplete = $record->$stageAttribute ?? false;
+            $icon = $isComplete ? '✅' : '⬜';
+            $statuses[] = "{$icon} Stage {$stage}";
+        }
+
+        return implode(' | ', $statuses);
     }
 }

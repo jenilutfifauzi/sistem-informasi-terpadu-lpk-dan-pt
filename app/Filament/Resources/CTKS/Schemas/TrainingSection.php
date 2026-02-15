@@ -17,8 +17,8 @@ class TrainingSection
 {
     public static function make(): Section
     {
-        return Section::make('Pelatihan di LPK')
-            ->description('Pencatatan pelatihan CTK di LPK dengan instruktur')
+        return Section::make('5. Pelatihan di LPK')
+            ->description(fn ($record) => self::getStatusBadge($record, 5) ?? 'Pencatatan pelatihan CTK di LPK dengan instruktur')
             ->schema([
                 Placeholder::make('training_summary')
                     ->label('Ringkasan Pelatihan')
@@ -111,5 +111,19 @@ class TrainingSection
             ])
             ->collapsible()
             ->collapsed(false);
+    }
+
+    protected static function getStatusBadge($record, int $stage): ?string
+    {
+        if (! $record) {
+            return null;
+        }
+
+        $stageAttribute = "stage{$stage}_complete";
+        $isComplete = $record->$stageAttribute ?? false;
+        $icon = $isComplete ? '✅' : '⬜';
+        $status = $isComplete ? 'Selesai' : 'Belum Selesai';
+
+        return "{$icon} Stage {$stage}: {$status}";
     }
 }

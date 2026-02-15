@@ -44,9 +44,7 @@ class CTKResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            \App\Filament\Resources\CTKS\RelationManagers\PaymentsRelationManager::class,
-        ];
+        return [];
     }
 
     public static function getPages(): array

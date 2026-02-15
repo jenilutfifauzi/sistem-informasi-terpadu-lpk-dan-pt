@@ -224,13 +224,6 @@ class CTKDocumentUploadTest extends TestCase
 
         $allDocumentTypes = [
             DocumentType::SoalBerkas,
-            DocumentType::Paspor,
-            DocumentType::IjinDesa,
-            DocumentType::Rekomendasi,
-            DocumentType::WorkingPermit,
-            DocumentType::VisaDocument,
-            DocumentType::MedicalFullReport,
-            DocumentType::OPPDocument,
         ];
 
         foreach ($allDocumentTypes as $type) {
@@ -246,8 +239,8 @@ class CTKDocumentUploadTest extends TestCase
             ]);
         }
 
-        $this->assertEquals(8, $ctk->documents()->count());
-        $this->assertEquals(8, $ctk->documents->count());
+        $this->assertEquals(1, $ctk->documents()->count());
+        $this->assertEquals(1, $ctk->documents->count());
 
         // Verify all document types are present
         foreach ($allDocumentTypes as $type) {

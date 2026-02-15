@@ -14,7 +14,8 @@ class MedicalFullSection
 {
     public static function make(): Section
     {
-        return Section::make('Medical Full Examination')
+        return Section::make('12. Medical Full Examination')
+            ->description(fn ($record) => self::getStatusBadge($record, 12) ?? 'Pencatatan pemeriksaan kesehatan lengkap')
             ->schema([
                 Placeholder::make('medical_full_summary')
                     ->label('Ringkasan Medical Full')
@@ -84,7 +85,20 @@ class MedicalFullSection
                         : 'Medical Full Baru'),
             ])
             ->collapsible()
-            ->collapsed(fn ($record) => ! $record || $record->medicalFulls->isEmpty())
-            ->description('Pemeriksaan kesehatan lengkap sebelum keberangkatan. Perpanjangan diperlukan jika lebih dari 90 hari.');
+            ->collapsed(fn ($record) => ! $record || $record->medicalFulls->isEmpty());
+    }
+
+    protected static function getStatusBadge($record, int $stage): ?string
+    {
+        if (! $record) {
+            return null;
+        }
+
+        $stageAttribute = "stage{$stage}_complete";
+        $isComplete = $record->$stageAttribute ?? false;
+        $icon = $isComplete ? '✅' : '⬜';
+        $status = $isComplete ? 'Selesai' : 'Belum Selesai';
+
+        return "{$icon} Stage {$stage}: {$status}";
     }
 }

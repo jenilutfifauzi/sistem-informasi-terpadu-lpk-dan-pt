@@ -16,8 +16,8 @@ class PaymentSection
 {
     public static function make(): Section
     {
-        return Section::make('Pembayaran')
-            ->description('Rekam pembayaran untuk 5 tahap (Stage 1-5)')
+        return Section::make('2. Pembayaran')
+            ->description(fn ($record) => self::getStatusBadge($record, 2) ?? 'Rekam pembayaran untuk tahap LPK')
             ->schema([
                 Placeholder::make('payment_summary')
                     ->label('Ringkasan Pembayaran')
@@ -56,7 +56,7 @@ class PaymentSection
                             ->label('Tahap Pembayaran')
                             ->numeric()
                             ->required()
-                            ->default(fn ($get) => count($get('../../payments') ?? []) + 1)
+                            ->default(fn ($get) => (collect($get('../../payments') ?? [])->max('stage_number') ?? 0) + 1)
                             ->minValue(1)
                             ->maxValue(5)
                             ->helperText('Tahap pembayaran (1-5)'),
@@ -123,5 +123,22 @@ class PaymentSection
             ->collapsible()
             ->persistCollapsed()
             ->columns(1);
+    }
+
+    protected static function getStatusBadge($record, int ...$stages): ?string
+    {
+        if (! $record) {
+            return null;
+        }
+
+        $statuses = [];
+        foreach ($stages as $stage) {
+            $stageAttribute = "stage{$stage}_complete";
+            $isComplete = $record->$stageAttribute ?? false;
+            $icon = $isComplete ? '✅' : '⬜';
+            $statuses[] = "{$icon} Stage {$stage}";
+        }
+
+        return implode(' | ', $statuses);
     }
 }

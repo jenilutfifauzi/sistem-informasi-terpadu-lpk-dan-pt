@@ -14,7 +14,8 @@ class VisaSection
 {
     public static function make(): Section
     {
-        return Section::make('Visa & Working Permit')
+        return Section::make('10-11-13. Visa & Working Permit')
+            ->description(fn ($record) => self::getStatusBadge($record, 10, 11, 13) ?? 'Pencatatan visa dan working permit')
             ->schema([
                 Placeholder::make('visa_summary')
                     ->label('Ringkasan Visa')
@@ -103,5 +104,22 @@ class VisaSection
             ])
             ->collapsible()
             ->collapsed(fn ($record) => ! $record || $record->visaRecords->isEmpty());
+    }
+
+    protected static function getStatusBadge($record, int ...$stages): ?string
+    {
+        if (! $record) {
+            return null;
+        }
+
+        $statuses = [];
+        foreach ($stages as $stage) {
+            $stageAttribute = "stage{$stage}_complete";
+            $isComplete = $record->$stageAttribute ?? false;
+            $icon = $isComplete ? '✅' : '⬜';
+            $statuses[] = "{$icon} Stage {$stage}";
+        }
+
+        return implode(' | ', $statuses);
     }
 }

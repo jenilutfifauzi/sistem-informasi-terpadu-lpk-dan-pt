@@ -187,13 +187,14 @@ Laravel application structure:
 - [X] T068 Run full test suite `php artisan test --compact` and verify tests pass
 - [X] T069 Verify quickstart.md manual testing checklist (all 7 test scenarios) passes
 - [X] T070 [P] Update CHANGELOG or feature documentation if project maintains one
+- [X] T071 [P] Display "Progress Tahapan CTK" section automatically on Edit CTK page (resources/views/components/ctk-progress-section.blade.php) showing visual checkboxes for all 15 stages
 
 ### Performance & Accessibility
 
-- [ ] T071 Check for N+1 query issues when loading CTK table with actions (use Laravel Debugbar if available)
-- [ ] T072 Verify table performance with 100+ CTK records loaded
-- [ ] T073 Test responsive layout on mobile/tablet (action buttons should remain accessible)
-- [ ] T074 [P] Add browser console check for JavaScript errors during action execution
+- [ ] T072 Check for N+1 query issues when loading CTK table with actions (use Laravel Debugbar if available)
+- [ ] T073 Verify table performance with 100+ CTK records loaded
+- [ ] T074 Test responsive layout on mobile/tablet (action buttons should remain accessible)
+- [ ] T075 [P] Add browser console check for JavaScript errors during action execution
 
 ---
 
@@ -339,11 +340,11 @@ class CTKViewActionTest extends TestCase
 - **Phase 4 (US2 - Kelola Progress)**: 3-4 hours - modal form, validation, activity logging
 - **Phase 5 (US3 - Role Visibility)**: 2-3 hours - authorization logic + extensive role tests
 - **Phase 6 (US4 - Bulk)**: 2-3 hours - similar to US2 but with collection handling
-- **Phase 7 (Polish)**: 1-2 hours - formatting, performance checks, documentation
+- **Phase 7 (Polish + Progress Display)**: 1-2 hours - formatting, progress section component, performance checks, documentation
 
 **Total**: 10-16 hours for complete implementation with all user stories and tests
 
-**MVP (US1 + US2)**: 5-7 hours
+**MVP (US1 + US2 + Progress Display)**: 5-7 hours
 
 ---
 

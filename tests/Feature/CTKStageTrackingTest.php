@@ -139,11 +139,25 @@ class CTKStageTrackingTest extends TestCase
     }
 
     /** @test */
-    public function stage_4_paspor_completes_when_paspor_number_filled()
+    public function stage_4_paspor_completes_when_paspor_number_filled_and_document_uploaded()
     {
         $ctk = CTK::factory()->create([
             'paspor_number' => 'X1234567',
         ]);
+        $user = User::factory()->create();
+
+        // Upload paspor document
+        CTKDocument::create([
+            'ctk_id' => $ctk->id,
+            'document_type' => DocumentType::Paspor,
+            'filename' => 'paspor.pdf',
+            'file_path' => 'documents/paspor.pdf',
+            'file_size' => 1024,
+            'mime_type' => 'application/pdf',
+            'uploader_id' => $user->id,
+        ]);
+
+        $ctk->refresh();
 
         $this->assertTrue($ctk->stage4_complete);
     }
@@ -297,6 +311,17 @@ class CTKStageTrackingTest extends TestCase
             'status' => MCUStatus::FIT,
         ]);
 
+        // Stage 4: Paspor document
+        CTKDocument::create([
+            'ctk_id' => $ctk->id,
+            'document_type' => DocumentType::Paspor,
+            'filename' => 'paspor.pdf',
+            'file_path' => 'documents/paspor.pdf',
+            'file_size' => 1024,
+            'mime_type' => 'application/pdf',
+            'uploader_id' => $user->id,
+        ]);
+
         $ctk->refresh();
 
         // 2 stages complete (1 and 4) out of 15 = 13.33% ≈ 13%
@@ -343,6 +368,9 @@ class CTKStageTrackingTest extends TestCase
         // Stage 3: Soal Berkas
         CTKDocument::create(['ctk_id' => $ctk->id, 'document_type' => DocumentType::SoalBerkas, 'filename' => 'soal.pdf', 'file_path' => 'soal.pdf', 'file_size' => 1024, 'mime_type' => 'application/pdf', 'uploader_id' => $user->id]);
 
+        // Stage 4: Paspor document
+        CTKDocument::create(['ctk_id' => $ctk->id, 'document_type' => DocumentType::Paspor, 'filename' => 'paspor.pdf', 'file_path' => 'paspor.pdf', 'file_size' => 1024, 'mime_type' => 'application/pdf', 'uploader_id' => $user->id]);
+
         // Stage 5: Training
         CTKTraining::create(['ctk_id' => $ctk->id, 'instructor_id' => $instructor->id, 'training_start_date' => now(), 'training_end_date' => now(), 'training_location' => 'LPK', 'completion_status' => 'Selesai', 'created_by' => $user->id]);
 
@@ -377,6 +405,20 @@ class CTKStageTrackingTest extends TestCase
         $ctk = CTK::factory()->create([
             'paspor_number' => 'X1234567',
         ]);
+        $user = User::factory()->create();
+
+        // Stage 4: Paspor document
+        CTKDocument::create([
+            'ctk_id' => $ctk->id,
+            'document_type' => DocumentType::Paspor,
+            'filename' => 'paspor.pdf',
+            'file_path' => 'documents/paspor.pdf',
+            'file_size' => 1024,
+            'mime_type' => 'application/pdf',
+            'uploader_id' => $user->id,
+        ]);
+
+        $ctk->refresh();
 
         $completions = $ctk->stage_completions;
 
@@ -385,7 +427,7 @@ class CTKStageTrackingTest extends TestCase
         $this->assertEquals(1, $completions[1]['stage_number']);
         $this->assertFalse($completions[1]['complete']); // No MCU record
         $this->assertEquals('[ ]', $completions[1]['checkbox']);
-        $this->assertTrue($completions[4]['complete']); // Paspor number exists
+        $this->assertTrue($completions[4]['complete']); // Paspor number + document exists
         $this->assertEquals('[x]', $completions[4]['checkbox']);
     }
 }

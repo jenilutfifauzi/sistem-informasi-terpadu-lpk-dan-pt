@@ -15,8 +15,8 @@ class DocumentSection
 {
     public static function make(): Section
     {
-        return Section::make('Dokumen CTK')
-            ->description('Upload dokumen-dokumen yang diperlukan untuk proses CTK')
+        return Section::make('3-4. Dokumen CTK (Soal/Berkas & Paspor)')
+            ->description(fn ($record) => self::getStatusBadge($record, 3, 4) ?? 'Upload dokumen-dokumen yang diperlukan untuk proses CTK')
             ->schema([
                 Placeholder::make('document_summary')
                     ->label('Ringkasan Dokumen')
@@ -26,7 +26,7 @@ class DocumentSection
                         }
 
                         $totalDocs = $record->documents->count();
-                        $requiredDocs = 8;
+                        $requiredDocs = 1;
 
                         return new HtmlString("
                             <div class='text-sm'>
@@ -76,7 +76,7 @@ class DocumentSection
                             ->openable()
                             ->required()
                             ->helperText('Upload file PDF, JPG, atau PNG (max 10MB)')
-                            ->afterStateUpdated(function ($state, $set, $get) {
+                            ->afterStateUpdated(function ($state, $set) {
                                 if ($state) {
                                     if (is_array($state) && isset($state[0])) {
                                         $set('filename', basename($state[0]));
@@ -90,16 +90,23 @@ class DocumentSection
                             ->label('Nama File')
                             ->disabled()
                             ->helperText('Nama file akan terisi otomatis saat upload'),
+
+                        TextInput::make('file_size')
+                            ->hidden(),
+
+                        TextInput::make('mime_type')
+                            ->hidden(),
                     ])
                     ->itemLabel(function (array $state): ?string {
                         $docType = $state['document_type'] ?? null;
-                        if (!$docType) {
+                        if (! $docType) {
                             return 'Dokumen Baru';
                         }
                         // Jika sudah enum, ambil label langsung
                         if ($docType instanceof DocumentType) {
                             return $docType->getLabel();
                         }
+
                         // Jika string, convert ke enum
                         return DocumentType::tryFrom($docType)?->getLabel() ?? 'Dokumen';
                     })
@@ -111,5 +118,22 @@ class DocumentSection
             ])
             ->collapsible()
             ->collapsed(false);
+    }
+
+    protected static function getStatusBadge($record, int ...$stages): ?string
+    {
+        if (! $record) {
+            return null;
+        }
+
+        $statuses = [];
+        foreach ($stages as $stage) {
+            $stageAttribute = "stage{$stage}_complete";
+            $isComplete = $record->$stageAttribute ?? false;
+            $icon = $isComplete ? '✅' : '⬜';
+            $statuses[] = "{$icon} Stage {$stage}";
+        }
+
+        return implode(' | ', $statuses);
     }
 }

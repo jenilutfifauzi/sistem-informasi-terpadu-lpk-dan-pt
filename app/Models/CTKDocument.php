@@ -26,6 +26,50 @@ class CTKDocument extends Model
         'upload_timestamp',
     ];
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($document) {
+            // Ensure filename is set from file_path
+            if (empty($document->filename) && ! empty($document->file_path)) {
+                $document->filename = basename($document->file_path);
+            }
+
+            // Set file_size if not present
+            if (empty($document->file_size) && ! empty($document->file_path)) {
+                $fullPath = storage_path('app/public/'.$document->file_path);
+                if (file_exists($fullPath)) {
+                    $document->file_size = filesize($fullPath);
+                } else {
+                    $document->file_size = 0;
+                }
+            }
+
+            // Set mime_type if not present
+            if (empty($document->mime_type) && ! empty($document->filename)) {
+                $mimeTypes = [
+                    'pdf' => 'application/pdf',
+                    'jpg' => 'image/jpeg',
+                    'jpeg' => 'image/jpeg',
+                    'png' => 'image/png',
+                ];
+                $ext = strtolower(pathinfo($document->filename, PATHINFO_EXTENSION));
+                $document->mime_type = $mimeTypes[$ext] ?? 'application/octet-stream';
+            }
+
+            // Set uploader_id if not present
+            if (empty($document->uploader_id)) {
+                $document->uploader_id = auth()->id();
+            }
+
+            // Set upload_timestamp if not present
+            if (empty($document->upload_timestamp)) {
+                $document->upload_timestamp = now();
+            }
+        });
+    }
+
     protected function casts(): array
     {
         return [

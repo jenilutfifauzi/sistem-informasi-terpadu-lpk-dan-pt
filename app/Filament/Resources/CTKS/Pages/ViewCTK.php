@@ -140,7 +140,6 @@ class ViewCTK extends ViewRecord
                     ])
                     ->collapsible()
                     ->collapsed(fn ($record) => $record->mcuRecords->isEmpty()),
-                // Payment history moved to "Riwayat Pembayaran" tab (PaymentsRelationManager)
                 Section::make('Riwayat Dokumen')
                     ->description('Dokumen-dokumen yang telah diupload')
                     ->schema([
@@ -155,7 +154,7 @@ class ViewCTK extends ViewRecord
                                     return 'Belum ada dokumen';
                                 }
 
-                                $summary = 'Total: '.$documents->count().'/8 dokumen terupload';
+                                $summary = 'Total: '.$documents->count().'/1 dokumen terupload';
 
                                 $list = $documents->map(function ($doc) {
                                     $type = $doc->document_type?->getLabel() ?? 'N/A';
