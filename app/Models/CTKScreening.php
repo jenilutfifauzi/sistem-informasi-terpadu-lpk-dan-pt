@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ScreeningStage;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -18,6 +19,7 @@ class CTKScreening extends Model
         'interview_date',
         'interview_location',
         'screening_result',
+        'screening_stage',
         'interview_notes',
         'created_by',
     ];
@@ -26,6 +28,7 @@ class CTKScreening extends Model
     {
         return [
             'interview_date' => 'date',
+            'screening_stage' => ScreeningStage::class,
         ];
     }
 

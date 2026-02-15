@@ -10,6 +10,7 @@ Auto-generated from all feature plans. Last updated: 2026-01-13
 - MySQL/MariaDB (existing CTK table, no schema changes) (005-ctk-status-display)
 - PHP 8.2+ (production: PHP 8.4.5) + Laravel 11.28+, Filament 4.0+, Livewire 3, Spatie Activity Log 4.10 (006-ctk-view-actions)
 - MySQL/MariaDB (existing CTK table, no schema changes required) (006-ctk-view-actions)
+- PHP 8.4.5 + Laravel 11, Filament v4, Livewire v3 (007-ctk-edit-stages-separation)
 
 - PHP 8.4.5 (001-user-management-rbac)
 
@@ -29,9 +30,9 @@ tests/
 PHP 8.4.5: Follow standard conventions
 
 ## Recent Changes
+- 007-ctk-edit-stages-separation: Added PHP 8.4.5 + Laravel 11, Filament v4, Livewire v3
+- 007-ctk-edit-stages-separation: Added [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
 - 006-ctk-view-actions: Added PHP 8.2+ (production: PHP 8.4.5) + Laravel 11.28+, Filament 4.0+, Livewire 3, Spatie Activity Log 4.10
-- 005-ctk-status-display: Added PHP 8.4.5 + Laravel 11, Filament 4, Livewire 3
-- 004-asset-management: Added PHP 8.4.5 + Laravel Framework v11, Filament v4, Livewire v3, Spatie Activity Log, Filament Shield
 
 
 <!-- MANUAL ADDITIONS START -->

@@ -307,11 +307,8 @@ class CTK extends Model
     public function getStage6CompleteAttribute(): bool
     {
         return $this->screenings()
+            ->where('screening_stage', 'Screening 1')
             ->where('screening_result', 'Lolos')
-            ->where(function ($query) {
-                $query->whereRaw('LOWER(interview_location) LIKE ?', ['%screening%'])
-                    ->orWhereRaw('LOWER(interview_location) LIKE ?', ['%tahap 1%']);
-            })
             ->exists();
     }
 
@@ -321,12 +318,8 @@ class CTK extends Model
     public function getStage7CompleteAttribute(): bool
     {
         return $this->screenings()
+            ->where('screening_stage', 'Interview User')
             ->where('screening_result', 'Lolos')
-            ->where(function ($query) {
-                $query->whereRaw('LOWER(interview_location) LIKE ?', ['%interview%'])
-                    ->orWhereRaw('LOWER(interview_location) LIKE ?', ['%user%'])
-                    ->orWhereRaw('LOWER(interview_location) LIKE ?', ['%tahap 2%']);
-            })
             ->exists();
     }
 
@@ -398,12 +391,11 @@ class CTK extends Model
     }
 
     /**
-     * Stage 15: Terbang - Complete when status = Berangkat AND departure_date filled
+     * Stage 15: Terbang - Complete when departure_date filled
      */
     public function getStage15CompleteAttribute(): bool
     {
-        return $this->current_status === \App\Enums\CTKStatus::Terbang &&
-            ! empty($this->departure_date);
+        return ! empty($this->departure_date);
     }
 
     /**

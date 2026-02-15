@@ -6,6 +6,7 @@ use App\Enums\CTKStatus;
 use App\Enums\DocumentType;
 use App\Enums\MCUStatus;
 use App\Enums\PaymentStatus;
+use App\Enums\ScreeningStage;
 use App\Models\CTK;
 use App\Models\CTKDocument;
 use App\Models\CTKMedicalFull;
@@ -287,14 +288,24 @@ class CTKStageTrackingTest extends TestCase
     }
 
     /** @test */
-    public function stage_15_terbang_completes_when_status_berangkat_with_departure_date()
+    public function stage_15_terbang_completes_when_departure_date_filled()
     {
         $ctk = CTK::factory()->create([
-            'current_status' => CTKStatus::Terbang,
             'departure_date' => now(),
         ]);
 
         $this->assertTrue($ctk->stage15_complete);
+    }
+
+    /** @test */
+    public function stage_15_not_complete_without_departure_date()
+    {
+        $ctk = CTK::factory()->create([
+            'current_status' => CTKStatus::Terbang,
+            'departure_date' => null,
+        ]);
+
+        $this->assertFalse($ctk->stage15_complete);
     }
 
     /** @test */
@@ -375,10 +386,10 @@ class CTKStageTrackingTest extends TestCase
         CTKTraining::create(['ctk_id' => $ctk->id, 'instructor_id' => $instructor->id, 'training_start_date' => now(), 'training_end_date' => now(), 'training_location' => 'LPK', 'completion_status' => 'Selesai', 'created_by' => $user->id]);
 
         // Stage 6: Screening 1
-        CTKScreening::create(['ctk_id' => $ctk->id, 'interviewer_id' => $user->id, 'interview_date' => now(), 'interview_location' => 'Screening Tahap 1', 'screening_result' => 'Lolos', 'created_by' => $user->id]);
+        CTKScreening::create(['ctk_id' => $ctk->id, 'interviewer_id' => $user->id, 'interview_date' => now(), 'interview_location' => 'Screening Tahap 1', 'screening_stage' => ScreeningStage::Screening1, 'screening_result' => 'Lolos', 'created_by' => $user->id]);
 
         // Stage 7: Interview User
-        CTKScreening::create(['ctk_id' => $ctk->id, 'interviewer_id' => $user->id, 'interview_date' => now(), 'interview_location' => 'Interview User', 'screening_result' => 'Lolos', 'created_by' => $user->id]);
+        CTKScreening::create(['ctk_id' => $ctk->id, 'interviewer_id' => $user->id, 'interview_date' => now(), 'interview_location' => 'Interview User', 'screening_stage' => ScreeningStage::InterviewUser, 'screening_result' => 'Lolos', 'created_by' => $user->id]);
 
         // Stage 8: Ijin Desa
         CTKDocument::create(['ctk_id' => $ctk->id, 'document_type' => DocumentType::IjinDesa, 'filename' => 'ijin.pdf', 'file_path' => 'ijin.pdf', 'file_size' => 1024, 'mime_type' => 'application/pdf', 'uploader_id' => $user->id]);

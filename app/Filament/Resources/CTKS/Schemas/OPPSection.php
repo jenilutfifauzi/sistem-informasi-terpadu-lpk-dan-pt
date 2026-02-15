@@ -5,15 +5,14 @@ namespace App\Filament\Resources\CTKS\Schemas;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Radio;
-use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 
 class OPPSection
 {
     public static function make(): Section
     {
-        return Section::make('14-15. OPP & Departure (Terbang)')
-            ->description(fn ($record) => self::getStatusBadge($record, 14, 15) ?? 'Pencatatan OPP dan keberangkatan CTK')
+        return Section::make('14. OPP')
+            ->description(fn ($record) => self::getStatusBadge($record, 14) ?? 'Pencatatan penerimaan OPP (Offer Placement Paper)')
             ->schema([
                 Radio::make('opp_status')
                     ->label('Status OPP')
@@ -39,22 +38,11 @@ class OPPSection
                     ->maxSize(10240) // 10MB
                     ->visible(fn ($get) => $get('opp_status') === 'Diterima')
                     ->required(fn ($get) => $get('opp_status') === 'Diterima'),
-
-                DatePicker::make('departure_date')
-                    ->label('Tanggal Keberangkatan')
-                    ->visible(fn ($get) => $get('opp_status') === 'Diterima')
-                    ->required(fn ($get) => $get('opp_status') === 'Diterima')
-                    ->afterOrEqual('opp_receipt_date')
-                    ->helperText('Tanggal keberangkatan harus setelah atau sama dengan tanggal terima OPP'),
-
-                TextInput::make('flight_number')
-                    ->label('Nomor Penerbangan')
-                    ->placeholder('Contoh: GA123, JL456')
-                    ->maxLength(50)
-                    ->visible(fn ($get) => $get('opp_status') === 'Diterima'),
             ])
             ->columns(2)
-            ->collapsible();
+            ->collapsible()
+            ->persistCollapsed()
+            ->collapsed(fn ($record) => $record?->stage_14_complete ?? false);
     }
 
     protected static function getStatusBadge($record, int ...$stages): ?string

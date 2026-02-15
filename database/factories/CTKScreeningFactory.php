@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\ScreeningStage;
 use App\Models\CTK;
 use App\Models\CTKScreening;
 use App\Models\User;
@@ -32,6 +33,10 @@ class CTKScreeningFactory extends Factory
                 'Ruang Interview 2',
                 'Aula Utama',
             ]),
+            'screening_stage' => fake()->randomElement([
+                ScreeningStage::Screening1,
+                ScreeningStage::InterviewUser,
+            ]),
             'screening_result' => fake()->randomElement(['Lolos', 'Tidak Lolos']),
             'interview_notes' => fake()->optional()->paragraph(),
             'created_by' => User::factory(),
@@ -57,6 +62,28 @@ class CTKScreeningFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'screening_result' => 'Tidak Lolos',
             'interview_notes' => 'Kandidat belum memenuhi kriteria yang dibutuhkan.',
+        ]);
+    }
+
+    /**
+     * Indicate that this is a Screening 1 record.
+     */
+    public function screening1(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'screening_stage' => ScreeningStage::Screening1,
+            'interview_location' => 'Ruang Interview 1',
+        ]);
+    }
+
+    /**
+     * Indicate that this is an Interview User record.
+     */
+    public function interviewUser(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'screening_stage' => ScreeningStage::InterviewUser,
+            'interview_location' => 'Ruang Interview User',
         ]);
     }
 }

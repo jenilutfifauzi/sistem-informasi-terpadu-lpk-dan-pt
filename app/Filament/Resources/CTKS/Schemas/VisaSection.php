@@ -14,8 +14,8 @@ class VisaSection
 {
     public static function make(): Section
     {
-        return Section::make('10-11-13. Visa & Working Permit')
-            ->description(fn ($record) => self::getStatusBadge($record, 10, 11, 13) ?? 'Pencatatan visa dan working permit')
+        return Section::make('13. Visa Terbit')
+            ->description(fn ($record) => self::getStatusBadge($record, 13) ?? 'Pencatatan penerbitan visa')
             ->schema([
                 Placeholder::make('visa_summary')
                     ->label('Ringkasan Visa')
