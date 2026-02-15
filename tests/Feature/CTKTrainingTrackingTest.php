@@ -7,12 +7,22 @@ use App\Models\CTK;
 use App\Models\CTKTraining;
 use App\Models\EmployeeLPK;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class CTKTrainingTrackingTest extends TestCase
 {
-    use RefreshDatabase;
+    protected function setUp(): void
+    {
+        parent::setUp();
+        DB::beginTransaction();
+    }
+
+    protected function tearDown(): void
+    {
+        DB::rollBack();
+        parent::tearDown();
+    }
 
     public function test_admin_can_assign_training_with_instructor(): void
     {

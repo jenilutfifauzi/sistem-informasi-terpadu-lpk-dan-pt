@@ -165,34 +165,34 @@ Tasks are organized by **User Story** to enable independent implementation and t
 
 ### Payment Form Section
 
-- [ ] T085 [US3] Create PaymentSection schema class in app/Filament/Resources/CTKResource/Schemas/PaymentSection.php
-- [ ] T086 [US3] Implement payment form with Repeater component for multiple payment stages (1-5)
-- [ ] T087 [US3] Add payment form fields per stage: TextInput for stage_number (disabled, auto-numbered 1-5), amount (numeric, required, prefix 'Rp')
-- [ ] T088 [US3] Add payment form fields: TextInput for bank_name (required), DatePicker for payment_date (required, maxDate today)
-- [ ] T089 [US3] Add payment form fields: Select for payment_status (Pending/Lunas), FileUpload for payment_proof (PDF/JPG, max 10MB, nullable)
-- [ ] T090 [US3] Create relation manager for payments on ViewCTK page showing payment history table
-- [ ] T091 [US3] Add calculated field: Show total paid vs total required in payment section
+- [X] T085 [US3] Create PaymentSection schema class in app/Filament/Resources/CTKResource/Schemas/PaymentSection.php
+- [X] T086 [US3] Implement payment form with Repeater component for multiple payment stages (1-5)
+- [X] T087 [US3] Add payment form fields per stage: TextInput for stage_number (disabled, auto-numbered 1-5), amount (numeric, required, prefix 'Rp')
+- [X] T088 [US3] Add payment form fields: TextInput for bank_name (required), DatePicker for payment_date (required, maxDate today)
+- [X] T089 [US3] Add payment form fields: Select for payment_status (Pending/Lunas), FileUpload for payment_proof (PDF/JPG, max 10MB, nullable)
+- [X] T090 [US3] Create relation manager for payments on ViewCTK page showing payment history table
+- [X] T091 [US3] Add calculated field: Show total paid vs total required in payment section
 
 ### Payment Validation & Gates
 
-- [ ] T092 [US3] Add validation in AdvanceStageAction: Check if at least 1 payment is marked "Lunas" before advancing from stage 2
-- [ ] T093 [US3] Implement payment completion check: Show completion percentage (e.g., "3/5 payments complete")
-- [ ] T094 [US3] Add notification when payment proof is uploaded: "Payment proof uploaded for stage X"
+- [X] T092 [US3] Add validation in AdvanceStageAction: Check if at least 1 payment is marked "Lunas" before advancing from stage 2
+- [X] T093 [US3] Implement payment completion check: Show completion percentage (e.g., "3/5 payments complete")
+- [X] T094 [US3] Add notification when payment proof is uploaded: "Payment proof uploaded for stage X"
 
 ### Keuangan PT/LPK View
 
-- [ ] T095 [US3] Add payment status filter in CTKTable: Filter by payment completion (All Paid/Partial/None)
+- [X] T095 [US3] Add payment status filter in CTKTable: Filter by payment completion (All Paid/Partial/None)
 - [ ] T096 [US3] Add payment summary widget on dashboard (future enhancement placeholder)
 
 ### Testing
 
-- [ ] T097 [US3] Create feature test CTKPaymentTrackingTest in tests/Feature/CTKPaymentTrackingTest.php
-- [ ] T098 [US3] Write test: Admin can record payment stage 1 with amount and bank, payment is logged with timestamp
-- [ ] T099 [US3] Write test: Admin views payment history and sees all payments with amounts, dates, banks, status
-- [ ] T100 [US3] Write test: System prevents advancement when no payments are complete
-- [ ] T101 [US3] Write test: Admin uploads payment proof document and document is attached to payment record
-- [ ] T102 [US3] Write test: Keuangan PT can filter CTK list by payment status and see correct groups
-- [ ] T103 [US3] Run php artisan test --filter=CTKPaymentTrackingTest to verify all tests pass
+- [X] T097 [US3] Create feature test CTKPaymentTrackingTest in tests/Feature/CTKPaymentTrackingTest.php
+- [X] T098 [US3] Write test: Admin can record payment stage 1 with amount and bank, payment is logged with timestamp
+- [X] T099 [US3] Write test: Admin views payment history and sees all payments with amounts, dates, banks, status
+- [X] T100 [US3] Write test: System prevents advancement when no payments are complete
+- [X] T101 [US3] Write test: Admin uploads payment proof document and document is attached to payment record
+- [X] T102 [US3] Write test: Keuangan PT can filter CTK list by payment status and see correct groups
+- [X] T103 [US3] Run php artisan test --filter=CTKPaymentTrackingTest to verify all tests pass
 
 ---
 
@@ -202,40 +202,40 @@ Tasks are organized by **User Story** to enable independent implementation and t
 
 ### Document Upload Infrastructure
 
-- [ ] T104 [US4] Create DocumentSection schema class in app/Filament/Resources/CTKResource/Schemas/DocumentSection.php
-- [ ] T105 [US4] Implement document upload form: FileUpload field for each document type (SoalBerkas, Paspor, IjinDesa, Rekomendasi, WP, Visa, MedicalFull, OPP)
-- [ ] T106 [US4] Configure FileUpload: acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png']), maxSize(10240 KB), directory('ctk-documents/{document_type}')
-- [ ] T107 [US4] Set file visibility to 'private' for all CTK documents
-- [ ] T108 [US4] Add uploader_id and upload_timestamp automatically on upload using Filament lifecycle hooks
-- [ ] T109 [US4] Create document list table on ViewCTK page showing all uploaded documents with type, filename, upload date, uploader name, download button
+- [X] T104 [US4] Create DocumentSection schema class in app/Filament/Resources/CTKResource/Schemas/DocumentSection.php
+- [X] T105 [US4] Implement document upload form: FileUpload field for each document type (SoalBerkas, Paspor, IjinDesa, Rekomendasi, WP, Visa, MedicalFull, OPP)
+- [X] T106 [US4] Configure FileUpload: acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png']), maxSize(10240 KB), directory('ctk-documents/{document_type}')
+- [X] T107 [US4] Set file visibility to 'private' for all CTK documents
+- [X] T108 [US4] Add uploader_id and upload_timestamp automatically on upload using Filament lifecycle hooks
+- [X] T109 [US4] Create document list table on ViewCTK page showing all uploaded documents with type, filename, upload date, uploader name, download button
 
 ### Paspor Specific Fields
 
-- [ ] T110 [US4] Add TextInput for paspor number in DocumentSection (required when paspor document uploaded, maxLength 20)
-- [ ] T111 [US4] Link paspor number to paspor document in database
+- [X] T110 [US4] Add TextInput for paspor number in DocumentSection (required when paspor document uploaded, maxLength 20)
+- [X] T111 [US4] Link paspor number to paspor document in database
 
 ### Document Download
 
-- [ ] T112 [US4] Create CTKDocumentController in app/Http/Controllers/CTKDocumentController.php with download method
-- [ ] T113 [US4] Implement download method: Verify user is authenticated, verify user has permission to view CTK, return file response with original filename
-- [ ] T114 [US4] Add route in web.php: Route::get('/ctk/documents/{document}/download', [CTKDocumentController::class, 'download'])->middleware('auth')
-- [ ] T115 [US4] Add download action button in document list table
+- [X] T112 [US4] Create CTKDocumentController in app/Http/Controllers/CTKDocumentController.php with download method
+- [X] T113 [US4] Implement download method: Verify user is authenticated, verify user has permission to view CTK, return file response with original filename
+- [X] T114 [US4] Add route in web.php: Route::get('/ctk/documents/{document}/download', [CTKDocumentController::class, 'download'])->middleware('auth')
+- [X] T115 [US4] Add download action button in document list table
 
 ### Document Gates
 
-- [ ] T116 [US4] Update AdvanceStageAction to check required documents: Stage 3 requires SoalBerkas, Stage 4 requires Paspor, Stage 8 requires IjinDesa, etc.
-- [ ] T117 [US4] Show missing documents list when advancement is blocked: "Missing documents: Ijin Desa, Rekomendasi"
+- [X] T116 [US4] Update AdvanceStageAction to check required documents: Stage 3 requires SoalBerkas, Stage 4 requires Paspor, Stage 8 requires IjinDesa, etc.
+- [X] T117 [US4] Show missing documents list when advancement is blocked: "Missing documents: Ijin Desa, Rekomendasi"
 
 ### Testing
 
-- [ ] T118 [US4] Create feature test CTKDocumentUploadTest in tests/Feature/CTKDocumentUploadTest.php
-- [ ] T119 [US4] Write test: Admin uploads soal/berkas document, document is stored with metadata and marked Lengkap
-- [ ] T120 [US4] Write test: Admin uploads paspor document and enters paspor number, both are saved and linked
-- [ ] T121 [US4] Write test: Admin uploads ijin desa document, document is categorized correctly and status marked Ada
-- [ ] T122 [US4] Write test: Admin views document list and sees all documents with type, date, uploader, download link
-- [ ] T123 [US4] Write test: System prevents advancement when required documents are missing with clear message
-- [ ] T124 [US4] Write test: Authenticated user can download document, unauthenticated user gets 401
-- [ ] T125 [US4] Run php artisan test --filter=CTKDocumentUploadTest to verify all tests pass
+- [X] T118 [US4] Create feature test CTKDocumentUploadTest in tests/Feature/CTKDocumentUploadTest.php
+- [X] T119 [US4] Write test: Admin uploads soal/berkas document, document is stored with metadata and marked Lengkap
+- [X] T120 [US4] Write test: Admin uploads paspor document and enters paspor number, both are saved and linked
+- [X] T121 [US4] Write test: Admin uploads ijin desa document, document is categorized correctly and status marked Ada
+- [X] T122 [US4] Write test: Admin views document list and sees all documents with type, date, uploader, download link
+- [X] T123 [US4] Write test: System prevents advancement when required documents are missing with clear message
+- [X] T124 [US4] Write test: Authenticated user can download document, unauthenticated user gets 401
+- [X] T125 [US4] Run php artisan test --filter=CTKDocumentUploadTest to verify all tests pass
 
 ---
 
@@ -245,33 +245,33 @@ Tasks are organized by **User Story** to enable independent implementation and t
 
 ### Training Form Section
 
-- [ ] T126 [US5] Create TrainingSection schema class in app/Filament/Resources/CTKResource/Schemas/TrainingSection.php (placeholder for future Pelatihan module)
-- [ ] T127 [US5] Implement training form fields: DatePicker for start_date (required), Select for instructor_id (relationship to karyawan_lpk where jabatan=Instruktur, searchable, preload)
-- [ ] T128 [US5] Add training form fields: TextInput for training_location (required), training_hours (numeric), Textarea for completion_notes (nullable)
-- [ ] T129 [US5] Add training form fields: DatePicker for completion_date (nullable, after start_date), Radio for training_status (Aktif/Selesai)
-- [ ] T130 [US5] Create relation manager for training record on ViewCTK page showing training details and assigned instructor name
+- [X] T126 [US5] Create TrainingSection schema class in app/Filament/Resources/CTKResource/Schemas/TrainingSection.php (placeholder for future Pelatihan module)
+- [X] T127 [US5] Implement training form fields: DatePicker for start_date (required), Select for instructor_id (relationship to karyawan_lpk where jabatan=Instruktur, searchable, preload)
+- [X] T128 [US5] Add training form fields: TextInput for training_location (required), training_hours (numeric), Textarea for completion_notes (nullable)
+- [X] T129 [US5] Add training form fields: DatePicker for completion_date (nullable, after start_date), Radio for training_status (Aktif/Selesai)
+- [X] T130 [US5] Create relation manager for training record on ViewCTK page showing training details and assigned instructor name
 
 ### Training Gate
 
-- [ ] T131 [US5] Update AdvanceStageAction: Check training_status is "Selesai" before advancing from stage 5 (Belajar di LPK)
-- [ ] T132 [US5] Implement entity handoff: When advancing from stage 5 to 6, update current_entity from LPK to PT and log in stage_transitions with transition_reason "Training completed - handoff to PT"
-- [ ] T133 [US5] Add notification on handoff: "CTK transferred to PT entity for placement process"
+- [X] T131 [US5] Update AdvanceStageAction: Check training_status is "Selesai" before advancing from stage 5 (Belajar di LPK)
+- [X] T132 [US5] Implement entity handoff: When advancing from stage 5 to 6, update current_entity from LPK to PT and log in stage_transitions with transition_reason "Training completed - handoff to PT"
+- [X] T133 [US5] Add notification on handoff: "CTK transferred to PT entity for placement process"
 
 ### Training Filters & Views
 
-- [ ] T134 [US5] Add filter in CTKTable: Filter by training status (Aktif/Selesai)
+- [X] T134 [US5] Add filter in CTKTable: Filter by training status (Aktif/Selesai)
 - [ ] T135 [US5] Create dashboard widget for LPK showing active training count (future enhancement placeholder)
 
 ### Testing
 
-- [ ] T136 [US5] Create feature test CTKTrainingStageTest in tests/Feature/CTKTrainingStageTest.php
-- [ ] T137 [US5] Write test: Admin LPK enrolls CTK in training with instructor assignment, training record is created
-- [ ] T138 [US5] Write test: Instruktur marks training as Selesai, CTK can advance to Screening 1 stage
-- [ ] T139 [US5] Write test: Admin views training details and sees start date, completion date, assigned instructor name
-- [ ] T140 [US5] Write test: Admin LPK filters by training status and sees correct CTK groups (active vs completed)
-- [ ] T141 [US5] Write test: System prevents advancement when training is incomplete with error message
-- [ ] T142 [US5] Write test: Entity handoff from LPK to PT is logged correctly in stage_transitions
-- [ ] T143 [US5] Run php artisan test --filter=CTKTrainingStageTest to verify all tests pass
+- [X] T136 [US5] Create feature test CTKTrainingStageTest in tests/Feature/CTKTrainingStageTest.php
+- [X] T137 [US5] Write test: Admin LPK enrolls CTK in training with instructor assignment, training record is created
+- [X] T138 [US5] Write test: Instruktur marks training as Selesai, CTK can advance to Screening 1 stage
+- [X] T139 [US5] Write test: Admin views training details and sees start date, completion date, assigned instructor name
+- [X] T140 [US5] Write test: Admin LPK filters by training status and sees correct CTK groups (active vs completed)
+- [X] T141 [US5] Write test: System prevents advancement when training is incomplete with error message
+- [X] T142 [US5] Write test: Entity handoff from LPK to PT is logged correctly in stage_transitions
+- [X] T143 [US5] Run php artisan test --filter=CTKTrainingStageTest to verify all tests pass
 
 ---
 
@@ -349,26 +349,26 @@ Tasks are organized by **User Story** to enable independent implementation and t
 
 ### Medical Full Form Section
 
-- [ ] T179 [US8] Add medical full fields in VisaSection or create separate MedicalFullSection
-- [ ] T180 [US8] Implement medical full form fields: Radio for status (Selesai/Belum, required), DatePicker for examination_date (required, maxDate today)
-- [ ] T181 [US8] Add medical full field: FileUpload for medical report (PDF, max 10MB, required when status=Selesai)
-- [ ] T182 [US8] Add medical full field: Textarea for examination_findings (nullable, rows 4, label "Hasil Pemeriksaan")
+- [X] T179 [US8] Add medical full fields in VisaSection or create separate MedicalFullSection
+- [X] T180 [US8] Implement medical full form fields: Radio for status (Selesai/Belum, required), DatePicker for examination_date (required, maxDate today)
+- [X] T181 [US8] Add medical full field: FileUpload for medical report (PDF, max 10MB, required when status=Selesai)
+- [X] T182 [US8] Add medical full field: Textarea for examination_findings (nullable, rows 4, label "Hasil Pemeriksaan")
 
 ### Medical Full Gates & Validation
 
-- [ ] T183 [US8] Update AdvanceStageAction: Check medical full status is "Selesai" before advancing from stage 12 to 13
-- [ ] T184 [US8] Implement medical expiry warning: If medical full date is > 90 days ago, show warning "Medical examination may need renewal"
-- [ ] T185 [US8] Add notification when medical full uploaded: "Medical full report uploaded successfully"
+- [X] T183 [US8] Update AdvanceStageAction: Check medical full status is "Selesai" before advancing from stage 12 to 13
+- [X] T184 [US8] Implement medical expiry warning: If medical full date is > 90 days ago, show warning "Medical examination may need renewal"
+- [X] T185 [US8] Add notification when medical full uploaded: "Medical full report uploaded successfully"
 
 ### Testing
 
-- [ ] T186 [US8] Create feature test CTKMedicalFullTest in tests/Feature/CTKMedicalFullTest.php
-- [ ] T187 [US8] Write test: Admin PT records Medical Full as Selesai with date, status is saved and CTK can advance
-- [ ] T188 [US8] Write test: Admin uploads medical report document, document is linked to medical full record
-- [ ] T189 [US8] Write test: Medical Full result shows health issues, Admin reviews details and sees findings
-- [ ] T190 [US8] Write test: System prevents advancement when Medical Full incomplete or failed
-- [ ] T191 [US8] Write test: Medical Full completed over 90 days ago shows renewal warning
-- [ ] T192 [US8] Run php artisan test --filter=CTKMedicalFullTest to verify all tests pass
+- [X] T186 [US8] Create feature test CTKMedicalFullTest in tests/Feature/CTKMedicalFullTest.php
+- [X] T187 [US8] Write test: Admin PT records Medical Full as Selesai with date, status is saved and CTK can advance
+- [X] T188 [US8] Write test: Admin uploads medical report document, document is linked to medical full record
+- [X] T189 [US8] Write test: Medical Full result shows health issues, Admin reviews details and sees findings
+- [X] T190 [US8] Write test: System prevents advancement when Medical Full incomplete or failed
+- [X] T191 [US8] Write test: Medical Full completed over 90 days ago shows renewal warning
+- [X] T192 [US8] Run php artisan test --filter=CTKMedicalFullTest to verify all tests pass
 
 ---
 
@@ -385,11 +385,11 @@ Tasks are organized by **User Story** to enable independent implementation and t
 
 ### Immutability Enforcement
 
-- [ ] T197 [US9] Create CTKObserver in app/Observers/CTKObserver.php
-- [ ] T198 [US9] Implement updating method in CTKObserver: Check if CTK current_stage >= 14 (OPP) or status=Terbang
-- [ ] T199 [US9] If immutable stage and user lacks override_ctk_immutability permission, throw ValidationException with message "CTK record is locked - final stage"
-- [ ] T200 [US9] If user has override permission, log override action in activity log with justification field
-- [ ] T201 [US9] Register CTKObserver in AppServiceProvider boot method
+- [X] T197 [US9] Create CTKObserver in app/Observers/CTKObserver.php
+- [X] T198 [US9] Implement updating method in CTKObserver: Check if CTK current_stage >= 14 (OPP) or status=Terbang
+- [X] T199 [US9] If immutable stage and user lacks override_ctk_immutability permission, throw ValidationException with message "CTK record is locked - final stage"
+- [X] T200 [US9] If user has override permission, log override action in activity log with justification field
+- [X] T201 [US9] Register CTKObserver in AppServiceProvider boot method
 
 ### Success Metrics & Timeline
 
@@ -399,14 +399,14 @@ Tasks are organized by **User Story** to enable independent implementation and t
 
 ### Testing
 
-- [ ] T205 [US9] Create feature test CTKFinalStageTest in tests/Feature/CTKFinalStageTest.php
-- [ ] T206 [US9] Write test: Admin PT marks OPP as Diterima with receipt date, CTK advances to ready-for-departure
-- [ ] T207 [US9] Write test: Admin PT records departure date and marks Terbang, CTK status becomes Terbang
-- [ ] T208 [US9] Write test: CTK reaches Terbang status, system prevents editing without override permission
-- [ ] T209 [US9] Write test: User with override permission can edit Terbang CTK and action is logged
+- [X] T205 [US9] Create feature test CTKFinalStageTest in tests/Feature/CTKFinalStageTest.php
+- [X] T206 [US9] Write test: Admin PT marks OPP as Diterima with receipt date, CTK advances to ready-for-departure
+- [X] T207 [US9] Write test: Admin PT records departure date and marks Terbang, CTK status becomes Terbang
+- [X] T208 [US9] Write test: CTK reaches Terbang status, system prevents editing without override permission
+- [X] T209 [US9] Write test: User with override permission can edit Terbang CTK and action is logged
 - [ ] T210 [US9] Write test: Admin views complete timeline and sees all stages with dates, durations, persons
 - [ ] T211 [US9] Write test: Pimpinan views dashboard and sees count of CTKs in Terbang status
-- [ ] T212 [US9] Run php artisan test --filter=CTKFinalStageTest to verify all tests pass
+- [X] T212 [US9] Run php artisan test --filter=CTKFinalStageTest to verify all tests pass
 
 ---
 
@@ -416,27 +416,27 @@ Tasks are organized by **User Story** to enable independent implementation and t
 
 ### Policy Implementation
 
-- [ ] T213 [US10] Enhance CTKPolicy viewAny method: Apply entity scope based on user's entity
-- [ ] T214 [US10] Implement scope in CTKPolicy: LPK users see only CTK where current_stage 1-5, PT users see only current_stage 6-15
-- [ ] T215 [US10] Add exception for Pimpinan role: Can view all CTKs regardless of entity
-- [ ] T216 [US10] Update view method in CTKPolicy: Verify user entity matches CTK current_entity or user is Pimpinan
-- [ ] T217 [US10] Update update method in CTKPolicy: Verify user entity matches CTK current_entity before allowing edits
+- [X] T213 [US10] Enhance CTKPolicy viewAny method: Apply entity scope based on user's entity
+- [X] T214 [US10] Implement scope in CTKPolicy: LPK users see only CTK where current_stage 1-5, PT users see only current_stage 6-15
+- [X] T215 [US10] Add exception for Pimpinan role: Can view all CTKs regardless of entity
+- [X] T216 [US10] Update view method in CTKPolicy: Verify user entity matches CTK current_entity or user is Pimpinan
+- [X] T217 [US10] Update update method in CTKPolicy: Verify user entity matches CTK current_entity before allowing edits
 
 ### Filament Query Scoping
 
-- [ ] T218 [US10] Implement getEloquentQuery in CTKResource: Apply entity filter based on auth user
-- [ ] T219 [US10] Test entity scoping: LPK user logs in and only sees stages 1-5, PT user only sees 6-15
-- [ ] T220 [US10] Add visual indicator on CTK detail: Show "Entity: LPK" or "Entity: PT" badge prominently
+- [X] T218 [US10] Implement getEloquentQuery in CTKResource: Apply entity filter based on auth user
+- [X] T219 [US10] Test entity scoping: LPK user logs in and only sees stages 1-5, PT user only sees 6-15
+- [X] T220 [US10] Add visual indicator on CTK detail: Show "Entity: LPK" or "Entity: PT" badge prominently
 
 ### Testing
 
-- [ ] T221 [US10] Create feature test CTKEntityIsolationTest in tests/Feature/CTKEntityIsolationTest.php
-- [ ] T222 [US10] Write test: Admin LPK views CTK list and sees only CTKs in LPK stages (1-5)
-- [ ] T223 [US10] Write test: Admin PT views CTK list and sees only CTKs in PT stages (6-15)
-- [ ] T224 [US10] Write test: Pimpinan views CTK list and sees all CTKs across both entities (read-only)
-- [ ] T225 [US10] Write test: CTK in LPK stage, Admin PT tries to access record and gets 403/not found
-- [ ] T226 [US10] Write test: CTK transitions from stage 5 to 6, audit log records entity handoff
-- [ ] T227 [US10] Run php artisan test --filter=CTKEntityIsolationTest to verify all tests pass
+- [X] T221 [US10] Create feature test CTKEntityIsolationTest in tests/Feature/CTKEntityIsolationTest.php
+- [X] T222 [US10] Write test: Admin LPK views CTK list and sees only CTKs in LPK stages (1-5)
+- [X] T223 [US10] Write test: Admin PT views CTK list and sees only CTKs in PT stages (6-15)
+- [X] T224 [US10] Write test: Pimpinan views CTK list and sees all CTKs across both entities (read-only)
+- [X] T225 [US10] Write test: CTK in LPK stage, Admin PT tries to access record and gets 403/not found
+- [X] T226 [US10] Write test: CTK transitions from stage 5 to 6, audit log records entity handoff
+- [X] T227 [US10] Run php artisan test --filter=CTKEntityIsolationTest to verify all tests pass
 
 ---
 
@@ -460,13 +460,13 @@ Tasks are organized by **User Story** to enable independent implementation and t
 
 ### Testing
 
-- [ ] T236 [US11] Create feature test CTKAuditTrailTest in tests/Feature/CTKAuditTrailTest.php
-- [ ] T237 [US11] Write test: CTK data modified, audit log records who, what changed (old vs new), timestamp
-- [ ] T238 [US11] Write test: CTK advances to new stage, audit log records stage transition with responsible person, reason
-- [ ] T239 [US11] Write test: Document uploaded, audit log records uploader, document type, filename, timestamp
+- [X] T236 [US11] Create feature test CTKAuditTrailTest in tests/Feature/CTKAuditTrailTest.php
+- [X] T237 [US11] Write test: CTK data modified, audit log records who, what changed (old vs new), timestamp
+- [X] T238 [US11] Write test: CTK advances to new stage, audit log records stage transition with responsible person, reason
+- [X] T239 [US11] Write test: Document uploaded, audit log records uploader, document type, filename, timestamp
 - [ ] T240 [US11] Write test: User with audit permission views CTK audit trail and sees chronological log with filters
 - [ ] T241 [US11] Write test: Compliance auditor exports CTK history and complete audit trail is available in export
-- [ ] T242 [US11] Run php artisan test --filter=CTKAuditTrailTest to verify all tests pass
+- [X] T242 [US11] Run php artisan test --filter=CTKAuditTrailTest to verify all tests pass
 
 ---
 

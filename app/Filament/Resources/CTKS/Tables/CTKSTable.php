@@ -4,6 +4,7 @@ namespace App\Filament\Resources\CTKS\Tables;
 
 use App\Enums\EntityType;
 use App\Filament\Resources\CTKS\CTKResource;
+use Filament\Actions;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
@@ -27,28 +28,16 @@ class CTKSTable
                     ->searchable()
                     ->sortable()
                     ->weight('medium'),
-                TextColumn::make('current_status')
+                TextColumn::make('completed_stages_count')
                     ->label('Status')
                     ->badge()
-                    ->color(fn ($state) => match ($state?->value ?? $state) {
-                        'MCU' => 'gray',
-                        'Pembayaran' => 'warning',
-                        'Soal/Berkas', 'Paspor' => 'info',
-                        'Belajar di LPK' => 'primary',
-                        'Screening 1', 'Interview User' => 'purple',
-                        'Ijin Desa', 'Rekomendasi', 'WP', 'Apply Visa' => 'indigo',
-                        'Medical Full' => 'cyan',
-                        'Visa', 'OPP' => 'lime',
-                        'Terbang' => 'success',
-                        default => 'gray',
-                    })
-                    ->sortable(),
-                TextColumn::make('current_stage')
-                    ->label('Tahap')
-                    ->badge()
-                    ->color('info')
-                    ->formatStateUsing(fn ($state) => "Stage {$state}")
-                    ->sortable(),
+                    ->formatStateUsing(fn ($record) => $record->completed_stages_count === 15 ? 'Lengkap' : 'Belum Lengkap')
+                    ->color(fn ($record) => $record->completed_stages_count === 15 ? 'success' : 'warning')
+                    ->sortable(query: function (Builder $query, string $direction): Builder {
+                        // Custom sorting logic: count completed stages
+                        // We'll use current_stage as a proxy since stages complete sequentially
+                        return $query->orderBy('current_stage', $direction);
+                    }),
                 TextColumn::make('current_entity')
                     ->label('Entitas')
                     ->badge()
@@ -58,6 +47,22 @@ class CTKSTable
                         default => 'gray',
                     })
                     ->sortable(),
+                TextColumn::make('completion_progress')
+                    ->label('Progress')
+                    ->badge()
+                    ->color(fn ($record) => match (true) {
+                        $record->completed_stages_count === 15 => 'success',
+                        $record->completed_stages_count >= 10 => 'warning',
+                        $record->completed_stages_count >= 5 => 'info',
+                        default => 'gray',
+                    })
+                    ->icon(fn ($record) => $record->completed_stages_count === 15 ? 'heroicon-o-check-circle' : 'heroicon-o-clock')
+                    ->description(fn ($record) => $record->completion_percentage.'%')
+                    ->sortable(query: function (Builder $query, string $direction): Builder {
+                        // Custom sorting would require a computed column in database
+                        // For now, sort by current_stage as a proxy
+                        return $query->orderBy('current_stage', $direction);
+                    }),
                 TextColumn::make('no_telepon')
                     ->label('No. Telepon')
                     ->icon('heroicon-o-phone')
@@ -73,25 +78,6 @@ class CTKSTable
                 SelectFilter::make('current_entity')
                     ->label('Entitas')
                     ->options(EntityType::class),
-                SelectFilter::make('current_stage')
-                    ->label('Tahap')
-                    ->options([
-                        1 => 'Stage 1 - MCU',
-                        2 => 'Stage 2 - Pembayaran',
-                        3 => 'Stage 3 - Soal Berkas',
-                        4 => 'Stage 4 - Paspor',
-                        5 => 'Stage 5 - Belajar di LPK',
-                        6 => 'Stage 6 - Screening 1',
-                        7 => 'Stage 7 - Interview User',
-                        8 => 'Stage 8 - Ijin Desa',
-                        9 => 'Stage 9 - Rekomendasi',
-                        10 => 'Stage 10 - Working Permit',
-                        11 => 'Stage 11 - Apply Visa',
-                        12 => 'Stage 12 - Medical Full',
-                        13 => 'Stage 13 - Visa',
-                        14 => 'Stage 14 - OPP',
-                        15 => 'Stage 15 - Terbang',
-                    ]),
                 Filter::make('created_at')
                     ->form([
                         \Filament\Forms\Components\DatePicker::make('created_from')
@@ -136,6 +122,17 @@ class CTKSTable
                             default => $query,
                         };
                     }),
+            ])
+            ->actions([
+                Actions\Action::make('view')
+                    ->label('View')
+                    ->icon('heroicon-o-eye')
+                    ->url(fn ($record) => CTKResource::getUrl('view', ['record' => $record])),
+                Actions\Action::make('kelola_progress')
+                    ->label('Kelola Progress')
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('info')
+                    ->url(fn ($record) => CTKResource::getUrl('edit', ['record' => $record])),
             ])
             ->recordUrl(fn ($record) => CTKResource::getUrl('view', ['record' => $record]));
     }

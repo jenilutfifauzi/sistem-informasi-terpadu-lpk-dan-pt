@@ -8,7 +8,6 @@ use App\Filament\Resources\CTKS\Schemas\DocumentSection;
 use App\Filament\Resources\CTKS\Schemas\MCUSection;
 use App\Filament\Resources\CTKS\Schemas\MedicalFullSection;
 use App\Filament\Resources\CTKS\Schemas\OPPSection;
-use App\Filament\Resources\CTKS\Schemas\PaymentSection;
 use App\Filament\Resources\CTKS\Schemas\ScreeningSection;
 use App\Filament\Resources\CTKS\Schemas\TrainingSection;
 use App\Filament\Resources\CTKS\Schemas\VisaSection;
@@ -27,10 +26,10 @@ class EditCTK extends EditRecord
     {
         $baseForm = CTKForm::configure($schema);
 
-        // Get existing components and add MCU, Payment, Document, Training, Screening, Visa, and Medical Full sections
+        // Get existing components and add stage-specific sections
+        // Note: Payments managed via PaymentsRelationManager on ViewCTK page
         $components = $baseForm->getComponents();
         $components[] = MCUSection::make();
-        $components[] = PaymentSection::make();
         $components[] = DocumentSection::make();
         $components[] = TrainingSection::make();
         $components[] = ScreeningSection::make();
@@ -54,14 +53,8 @@ class EditCTK extends EditRecord
             }
         }
 
-        // Handle Payment records - ensure created_by is set
-        if (isset($data['payments'])) {
-            foreach ($data['payments'] as &$payment) {
-                if (! isset($payment['created_by'])) {
-                    $payment['created_by'] = Auth::id();
-                }
-            }
-        }
+        // Payment records managed via PaymentsRelationManager
+
         // Handle Document records - ensure uploader_id and upload_timestamp are set
         if (isset($data['documents'])) {
             foreach ($data['documents'] as &$document) {

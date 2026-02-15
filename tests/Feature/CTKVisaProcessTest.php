@@ -5,21 +5,26 @@ namespace Tests\Feature;
 use App\Models\CTK;
 use App\Models\User;
 use App\Models\VisaRecord;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class CTKVisaProcessTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected User $admin;
 
     protected function setUp(): void
     {
         parent::setUp();
+        DB::beginTransaction();
 
         $this->admin = User::factory()->create();
         $this->actingAs($this->admin);
+    }
+
+    protected function tearDown(): void
+    {
+        DB::rollBack();
+        parent::tearDown();
     }
 
     /** @test */

@@ -29,6 +29,12 @@ class CTK extends Model
         'current_status',
         'current_stage',
         'current_entity',
+        'soal_berkas_status',
+        'paspor_number',
+        'ijin_desa_status',
+        'rekomendasi_status',
+        'wp_status',
+        'apply_visa_status',
         'opp_status',
         'opp_receipt_date',
         'opp_document_path',
@@ -168,6 +174,48 @@ class CTK extends Model
         return $this->current_stage < 15;
     }
 
+    /**
+     * Validate if CTK can advance to a target stage.
+     *
+     * @param  int  $targetStage  The stage number to advance to (1-15)
+     * @return bool True if advancement is allowed, false otherwise
+     */
+    public function canAdvanceToStage(int $targetStage): bool
+    {
+        // Cannot advance to invalid stage numbers
+        if ($targetStage < 1 || $targetStage > 15) {
+            return false;
+        }
+
+        // Cannot modify stage 15 (Terbang) - it's immutable
+        if ($this->current_stage === 15) {
+            return false;
+        }
+
+        // Cannot go backward
+        if ($targetStage < $this->current_stage) {
+            return false;
+        }
+
+        // Can stay at same stage (for updates to stage-specific data)
+        if ($targetStage === $this->current_stage) {
+            return true;
+        }
+
+        // Cannot skip stages - must advance sequentially
+        if ($targetStage > $this->current_stage + 1) {
+            return false;
+        }
+
+        // Check if current stage is complete before advancing
+        $currentStageAttribute = "stage{$this->current_stage}_complete";
+        if (! $this->$currentStageAttribute) {
+            return false;
+        }
+
+        return true;
+    }
+
     public function getPaymentCompletionStatusAttribute(): string
     {
         $payments = $this->payments;
@@ -181,5 +229,230 @@ class CTK extends Model
         }
 
         return 'partial';
+    }
+
+    // ==================== Stage Completion Tracking ====================
+    // Based on alur_ctk.md template and FR-037
+
+    /**
+     * Stage 1: MCU - Complete when status = FIT
+     */
+    public function getStage1CompleteAttribute(): bool
+    {
+        return $this->mcuRecords()
+            ->where('status', \App\Enums\MCUStatus::FIT)
+            ->exists();
+    }
+
+    /**
+     * Stage 2: Pembayaran - Complete when all 5 payments have proof uploaded and status = Lunas
+     */
+    public function getStage2CompleteAttribute(): bool
+    {
+        $payments = $this->payments()
+            ->where('payment_status', \App\Enums\PaymentStatus::Lunas)
+            ->whereNotNull('payment_proof_path')
+            ->get();
+
+        return $payments->count() >= 5;
+    }
+
+    /**
+     * Get payment progress (e.g., "3/5")
+     */
+    public function getPaymentProgressAttribute(): string
+    {
+        $completed = $this->payments()
+            ->where('payment_status', \App\Enums\PaymentStatus::Lunas)
+            ->whereNotNull('payment_proof_path')
+            ->count();
+
+        return "{$completed}/5";
+    }
+
+    /**
+     * Stage 3: Soal/Berkas - Complete when document uploaded AND status = Lengkap
+     */
+    public function getStage3CompleteAttribute(): bool
+    {
+        return $this->soal_berkas_status === 'Lengkap' &&
+            $this->documents()
+                ->where('document_type', \App\Enums\DocumentType::SoalBerkas)
+                ->exists();
+    }
+
+    /**
+     * Stage 4: Paspor - Complete when paspor_number is filled
+     */
+    public function getStage4CompleteAttribute(): bool
+    {
+        return ! empty($this->paspor_number);
+    }
+
+    /**
+     * Stage 5: Belajar di LPK - Complete when training_status = Selesai
+     */
+    public function getStage5CompleteAttribute(): bool
+    {
+        return $this->trainings()
+            ->where('completion_status', 'Selesai')
+            ->exists();
+    }
+
+    /**
+     * Stage 6: Screening 1 - Complete when result = Lolos
+     */
+    public function getStage6CompleteAttribute(): bool
+    {
+        return $this->screenings()
+            ->where('screening_result', 'Lolos')
+            ->where(function ($query) {
+                $query->whereRaw('LOWER(interview_location) LIKE ?', ['%screening%'])
+                    ->orWhereRaw('LOWER(interview_location) LIKE ?', ['%tahap 1%']);
+            })
+            ->exists();
+    }
+
+    /**
+     * Stage 7: Interview User - Complete when result = Lolos
+     */
+    public function getStage7CompleteAttribute(): bool
+    {
+        return $this->screenings()
+            ->where('screening_result', 'Lolos')
+            ->where(function ($query) {
+                $query->whereRaw('LOWER(interview_location) LIKE ?', ['%interview%'])
+                    ->orWhereRaw('LOWER(interview_location) LIKE ?', ['%user%'])
+                    ->orWhereRaw('LOWER(interview_location) LIKE ?', ['%tahap 2%']);
+            })
+            ->exists();
+    }
+
+    /**
+     * Stage 8: Ijin Desa - Complete when document uploaded AND status = Ada
+     */
+    public function getStage8CompleteAttribute(): bool
+    {
+        return $this->ijin_desa_status === 'Ada' &&
+            $this->documents()
+                ->where('document_type', \App\Enums\DocumentType::IjinDesa)
+                ->exists();
+    }
+
+    /**
+     * Stage 9: Rekomendasi - Complete when document uploaded AND status = Ada
+     */
+    public function getStage9CompleteAttribute(): bool
+    {
+        return $this->rekomendasi_status === 'Ada' &&
+            $this->documents()
+                ->where('document_type', \App\Enums\DocumentType::Rekomendasi)
+                ->exists();
+    }
+
+    /**
+     * Stage 10: WP - Complete when status = Lengkap
+     */
+    public function getStage10CompleteAttribute(): bool
+    {
+        return $this->wp_status === 'Lengkap';
+    }
+
+    /**
+     * Stage 11: Apply Visa - Complete when status = Diajukan
+     */
+    public function getStage11CompleteAttribute(): bool
+    {
+        return $this->apply_visa_status === 'Diajukan';
+    }
+
+    /**
+     * Stage 12: Medical Full - Complete when status = Selesai
+     */
+    public function getStage12CompleteAttribute(): bool
+    {
+        return $this->medicalFulls()
+            ->where('status', 'Selesai')
+            ->exists();
+    }
+
+    /**
+     * Stage 13: Visa - Complete when status = Terbit AND visa_number filled
+     */
+    public function getStage13CompleteAttribute(): bool
+    {
+        return $this->visaRecords()
+            ->where('application_status', 'Terbit')
+            ->whereNotNull('visa_number')
+            ->exists();
+    }
+
+    /**
+     * Stage 14: OPP - Complete when status = Diterima AND receipt_date filled
+     */
+    public function getStage14CompleteAttribute(): bool
+    {
+        return $this->opp_status === 'Diterima' && ! empty($this->opp_receipt_date);
+    }
+
+    /**
+     * Stage 15: Terbang - Complete when status = Berangkat AND departure_date filled
+     */
+    public function getStage15CompleteAttribute(): bool
+    {
+        return $this->current_status === \App\Enums\CTKStatus::Terbang &&
+            ! empty($this->departure_date);
+    }
+
+    /**
+     * Get total number of completed stages (X out of 15)
+     */
+    public function getCompletedStagesCountAttribute(): int
+    {
+        $count = 0;
+
+        for ($i = 1; $i <= 15; $i++) {
+            $attribute = "stage{$i}_complete";
+            if ($this->$attribute) {
+                $count++;
+            }
+        }
+
+        return $count;
+    }
+
+    /**
+     * Get completion progress as string (e.g., "8/15")
+     */
+    public function getCompletionProgressAttribute(): string
+    {
+        return "{$this->completed_stages_count}/15";
+    }
+
+    /**
+     * Get completion percentage (0-100)
+     */
+    public function getCompletionPercentageAttribute(): int
+    {
+        return (int) round(($this->completed_stages_count / 15) * 100);
+    }
+
+    /**
+     * Get array of all stage completion statuses
+     */
+    public function getStageCompletionsAttribute(): array
+    {
+        $stages = [];
+
+        for ($i = 1; $i <= 15; $i++) {
+            $attribute = "stage{$i}_complete";
+            $stages[$i] = [
+                'stage_number' => $i,
+                'complete' => $this->$attribute,
+                'checkbox' => $this->$attribute ? '[x]' : '[ ]',
+            ];
+        }
+
+        return $stages;
     }
 }

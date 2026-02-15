@@ -6,19 +6,24 @@ use App\Enums\DocumentType;
 use App\Models\CTK;
 use App\Models\CTKDocument;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class CTKDocumentUploadTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected function setUp(): void
     {
         parent::setUp();
+        DB::beginTransaction();
         Storage::fake('private');
+    }
+
+    protected function tearDown(): void
+    {
+        DB::rollBack();
+        parent::tearDown();
     }
 
     public function test_admin_can_upload_document_with_complete_information(): void

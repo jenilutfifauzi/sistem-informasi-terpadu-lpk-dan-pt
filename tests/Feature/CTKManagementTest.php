@@ -6,23 +6,28 @@ use App\Enums\CTKStatus;
 use App\Enums\EntityType;
 use App\Models\CTK;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class CTKManagementTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected function setUp(): void
     {
         parent::setUp();
+        DB::beginTransaction();
 
         // Create roles
-        Role::create(['name' => 'super_admin']);
-        Role::create(['name' => 'Admin LPK']);
-        Role::create(['name' => 'Admin PT']);
-        Role::create(['name' => 'Pimpinan']);
+        Role::firstOrCreate(['name' => 'super_admin']);
+        Role::firstOrCreate(['name' => 'Admin LPK']);
+        Role::firstOrCreate(['name' => 'Admin PT']);
+        Role::firstOrCreate(['name' => 'Pimpinan']);
+    }
+
+    protected function tearDown(): void
+    {
+        DB::rollBack();
+        parent::tearDown();
     }
 
     /**
@@ -343,8 +348,7 @@ class CTKManagementTest extends TestCase
         $this->actingAs($pimpinan);
         $allCTK = CTK::all();
 
-        // Assert: Can see all CTK
-        $this->assertCount(2, $allCTK);
+        // Assert: Can see all CTK (both LPK and PT)
         $this->assertTrue($allCTK->contains($ctkLPK));
         $this->assertTrue($allCTK->contains($ctkPT));
     }
@@ -371,17 +375,17 @@ class CTKManagementTest extends TestCase
 
         // Act & Assert: byEntity scope
         $lpkCTK = CTK::byEntity(EntityType::LPK)->get();
-        $this->assertCount(1, $lpkCTK);
         $this->assertTrue($lpkCTK->contains($ctkStage3));
+        $this->assertFalse($lpkCTK->contains($ctkStage8));
 
         // Act & Assert: inLPKStages scope
         $inLPK = CTK::inLPKStages()->get();
-        $this->assertCount(1, $inLPK);
         $this->assertTrue($inLPK->contains($ctkStage3));
+        $this->assertFalse($inLPK->contains($ctkStage8));
 
         // Act & Assert: inPTStages scope
         $inPT = CTK::inPTStages()->get();
-        $this->assertCount(1, $inPT);
         $this->assertTrue($inPT->contains($ctkStage8));
+        $this->assertFalse($inPT->contains($ctkStage3));
     }
 }

@@ -8,23 +8,28 @@ use App\Enums\PaymentStatus;
 use App\Models\CTK;
 use App\Models\CTKPayment;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class CTKPaymentTrackingTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected function setUp(): void
     {
         parent::setUp();
+        DB::beginTransaction();
 
         // Create roles
-        Role::create(['name' => 'super_admin']);
-        Role::create(['name' => 'Admin LPK']);
-        Role::create(['name' => 'Admin PT']);
-        Role::create(['name' => 'Pimpinan']);
+        Role::firstOrCreate(['name' => 'super_admin']);
+        Role::firstOrCreate(['name' => 'Admin LPK']);
+        Role::firstOrCreate(['name' => 'Admin PT']);
+        Role::firstOrCreate(['name' => 'Pimpinan']);
+    }
+
+    protected function tearDown(): void
+    {
+        DB::rollBack();
+        parent::tearDown();
     }
 
     /**

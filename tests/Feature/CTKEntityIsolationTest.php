@@ -5,34 +5,39 @@ namespace Tests\Feature;
 use App\Enums\EntityType;
 use App\Models\CTK;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class CTKEntityIsolationTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected function setUp(): void
     {
         parent::setUp();
+        DB::beginTransaction();
 
         // Create roles
-        Role::create(['name' => 'super_admin']);
-        Role::create(['name' => 'Admin LPK']);
-        Role::create(['name' => 'Admin PT']);
-        Role::create(['name' => 'Pimpinan']);
+        Role::firstOrCreate(['name' => 'super_admin']);
+        Role::firstOrCreate(['name' => 'Admin LPK']);
+        Role::firstOrCreate(['name' => 'Admin PT']);
+        Role::firstOrCreate(['name' => 'Pimpinan']);
 
         // Seed permissions for viewing and updating CTK
         $this->seedPermissions();
     }
 
+    protected function tearDown(): void
+    {
+        DB::rollBack();
+        parent::tearDown();
+    }
+
     protected function seedPermissions(): void
     {
-        \Spatie\Permission\Models\Permission::create(['name' => 'view_ctk']);
-        \Spatie\Permission\Models\Permission::create(['name' => 'view_any_ctk']);
-        \Spatie\Permission\Models\Permission::create(['name' => 'update_ctk']);
-        \Spatie\Permission\Models\Permission::create(['name' => 'create_ctk']);
+        \Spatie\Permission\Models\Permission::firstOrCreate(['name' => 'view_ctk']);
+        \Spatie\Permission\Models\Permission::firstOrCreate(['name' => 'view_any_ctk']);
+        \Spatie\Permission\Models\Permission::firstOrCreate(['name' => 'update_ctk']);
+        \Spatie\Permission\Models\Permission::firstOrCreate(['name' => 'create_ctk']);
 
         // Give roles the permissions
         Role::findByName('Admin LPK')->givePermissionTo(['view_ctk', 'view_any_ctk', 'update_ctk', 'create_ctk']);

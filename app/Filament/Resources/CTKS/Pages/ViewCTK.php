@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\CTKS\Pages;
 
-use App\Filament\Resources\CTKS\Actions\AdvanceStageAction;
 use App\Filament\Resources\CTKS\CTKResource;
 use Filament\Actions\EditAction;
 use Filament\Infolists\Components\TextEntry;
@@ -17,7 +16,6 @@ class ViewCTK extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            AdvanceStageAction::make(),
             EditAction::make(),
         ];
     }
@@ -55,38 +53,65 @@ class ViewCTK extends ViewRecord
                             ->placeholder('Tidak ada email'),
                     ])
                     ->columns(2),
-                Section::make('Status CTK')
+
+                // Workflow Stage Tracking - Visual Progress
+                Section::make('📋 Progress Tahapan CTK')
+                    ->description(fn ($record) => "Progress keseluruhan: {$record->completion_progress} ({$record->completion_percentage}%) - Centang otomatis saat data/dokumen diisi")
                     ->schema([
-                        TextEntry::make('current_status')
-                            ->label('Status Saat Ini')
-                            ->badge()
-                            ->color(fn ($state) => match ($state?->value ?? $state) {
-                                'MCU' => 'gray',
-                                'Pembayaran' => 'warning',
-                                'Soal/Berkas', 'Paspor' => 'info',
-                                'Belajar di LPK' => 'primary',
-                                'Screening 1', 'Interview User' => 'purple',
-                                'Ijin Desa', 'Rekomendasi', 'WP', 'Apply Visa' => 'indigo',
-                                'Medical Full' => 'cyan',
-                                'Visa', 'OPP' => 'lime',
-                                'Terbang' => 'success',
-                                default => 'gray',
-                            }),
-                        TextEntry::make('current_stage')
-                            ->label('Tahap')
-                            ->badge()
-                            ->color('info')
-                            ->formatStateUsing(fn ($state) => "Stage {$state}"),
-                        TextEntry::make('current_entity')
-                            ->label('Entitas')
-                            ->badge()
-                            ->color(fn ($state) => match ($state?->value ?? $state) {
-                                'LPK' => 'info',
-                                'PT' => 'warning',
-                                default => 'gray',
-                            }),
+                        TextEntry::make('nik')
+                            ->label('')
+                            ->state(fn ($record) => $record->nik) // Dummy state to get record
+                            ->formatStateUsing(function ($state, $record) {
+                                $stages = [
+                                    1 => ['name' => 'MCU', 'details' => 'Status: FIT'],
+                                    2 => ['name' => 'Pembayaran', 'details' => $record->payment_progress.' payments complete'],
+                                    3 => ['name' => 'Soal / Berkas', 'details' => 'Upload / Lengkap'],
+                                    4 => ['name' => 'Paspor', 'details' => 'No: '.($record->paspor_number ?? '...')],
+                                    5 => ['name' => 'Belajar di LPK', 'details' => 'Selesai'],
+                                    6 => ['name' => 'Screening 1', 'details' => 'Lolos'],
+                                    7 => ['name' => 'Interview User', 'details' => 'Lolos'],
+                                    8 => ['name' => 'Ijin Desa', 'details' => 'Ada'],
+                                    9 => ['name' => 'Rekom', 'details' => 'Ada'],
+                                    10 => ['name' => 'WP', 'details' => 'Lengkap'],
+                                    11 => ['name' => 'Apply Visa', 'details' => 'Diajukan'],
+                                    12 => ['name' => 'Medical Full', 'details' => 'Selesai'],
+                                    13 => ['name' => 'Visa', 'details' => 'Terbit'],
+                                    14 => ['name' => 'OPP', 'details' => 'Diterima'],
+                                    15 => ['name' => 'Terbang', 'details' => 'Berangkat'],
+                                ];
+
+                                $html = '<div class="grid grid-cols-1 md:grid-cols-3 gap-3">';
+
+                                foreach ($stages as $stageNum => $stageInfo) {
+                                    $isComplete = $record->{"stage{$stageNum}_complete"};
+                                    $checkbox = $isComplete ? '✅' : '⬜';
+                                    $textColor = $isComplete ? 'text-success-600 font-semibold' : 'text-gray-500';
+                                    $bgColor = $isComplete ? 'bg-success-50 border-success-200' : 'bg-gray-50 border-gray-200';
+
+                                    $html .= <<<HTML
+                                        <div class="flex items-start gap-2 p-3 rounded-lg border {$bgColor}">
+                                            <span class="text-2xl">{$checkbox}</span>
+                                            <div class="flex-1">
+                                                <div class="{$textColor} font-medium">
+                                                    {$stageNum}. {$stageInfo['name']}
+                                                </div>
+                                                <div class="text-xs text-gray-600 mt-1">
+                                                    {$stageInfo['details']}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    HTML;
+                                }
+
+                                $html .= '</div>';
+
+                                return new \Illuminate\Support\HtmlString($html);
+                            })
+                            ->columnSpanFull(),
                     ])
-                    ->columns(3),
+                    ->collapsible()
+                    ->collapsed(false),
+
                 Section::make('Riwayat MCU (Medical Check-Up)')
                     ->description('Rekaman pemeriksaan kesehatan yang telah dilakukan')
                     ->schema([
@@ -115,41 +140,7 @@ class ViewCTK extends ViewRecord
                     ])
                     ->collapsible()
                     ->collapsed(fn ($record) => $record->mcuRecords->isEmpty()),
-                Section::make('Riwayat Pembayaran')
-                    ->description('Rekaman pembayaran yang telah dilakukan')
-                    ->schema([
-                        TextEntry::make('payments')
-                            ->label('')
-                            ->listWithLineBreaks()
-                            ->bulleted()
-                            ->formatStateUsing(function ($record) {
-                                $payments = $record->payments;
-
-                                if ($payments->isEmpty()) {
-                                    return 'Belum ada pembayaran';
-                                }
-
-                                $totalPaid = $payments->where('payment_status', \App\Enums\PaymentStatus::Lunas)->count();
-                                $totalAmount = $payments->where('payment_status', \App\Enums\PaymentStatus::Lunas)->sum('amount');
-
-                                $summary = "Total: {$totalPaid}/5 pembayaran lunas (Rp ".number_format($totalAmount, 0, ',', '.').')';
-
-                                $list = $payments->map(function ($payment) {
-                                    $stage = $payment->stage_number ?? 'N/A';
-                                    $amount = 'Rp '.number_format($payment->amount ?? 0, 0, ',', '.');
-                                    $bank = $payment->bank_name ?? 'N/A';
-                                    $date = $payment->payment_date?->format('d F Y') ?? 'N/A';
-                                    $status = $payment->payment_status?->value ?? 'N/A';
-
-                                    return "Tahap {$stage}: {$amount} | Bank: {$bank} | Tanggal: {$date} | Status: {$status}";
-                                })->join("\n");
-
-                                return $summary."\n".$list;
-                            })
-                            ->placeholder('Belum ada pembayaran'),
-                    ])
-                    ->collapsible()
-                    ->collapsed(fn ($record) => $record->payments->isEmpty()),
+                // Payment history moved to "Riwayat Pembayaran" tab (PaymentsRelationManager)
                 Section::make('Riwayat Dokumen')
                     ->description('Dokumen-dokumen yang telah diupload')
                     ->schema([

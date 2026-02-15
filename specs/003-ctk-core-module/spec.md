@@ -211,6 +211,39 @@ All CTK status changes, document uploads, and data modifications are automatical
 
 ---
 
+### User Story 12 - Stage Completion Tracking & Visualization (Priority: P1)
+
+Admin can view CTK progress through visual workflow with automatic checkmarks for completed stages based on filled data and uploaded documents, following the alur_ctk.md template.
+
+**Why this priority**: Critical for monitoring CTK progress at a glance. Enables quick identification of incomplete stages and bottlenecks. Provides immediate visibility into which CTKs are ready to advance vs which need attention. Essential for manager oversight and process efficiency.
+
+**Independent Test**: Can be tested by creating a CTK, filling stage data/uploading documents, and verifying checkmarks appear automatically and progress is displayed correctly in CTK list view.
+
+**Acceptance Scenarios**:
+
+1. **Given** CTK is created, **When** Admin views CTK detail page, **Then** they see visual workflow showing all 15 stages with checkboxes matching alur_ctk.md template
+2. **Given** Admin marks MCU as "FIT", **When** MCU record is saved, **Then** checkbox for Stage 1 (MCU) automatically changes from `[ ]` to `[x]` and stage shows as complete
+3. **Given** Admin uploads payment proof for stage 3 of 5 payments, **When** document is saved, **Then** checkbox for that payment substage changes to `[x]` and payment stage shows "3/5 Complete"
+4. **Given** Admin uploads Soal/Berkas document and marks as "Lengkap", **When** data is saved, **Then** Stage 3 (Soal/Berkas) checkbox automatically becomes `[x]`
+5. **Given** Admin enters paspor number, **When** number is saved, **Then** Stage 4 (Paspor) checkbox automatically becomes `[x]`
+6. **Given** Instruktur marks training as "Selesai", **When** status is saved, **Then** Stage 5 (Belajar di LPK) checkbox automatically becomes `[x]`
+7. **Given** Admin marks Screening 1 as "Lolos", **When** result is saved, **Then** Stage 6 (Screening 1) checkbox automatically becomes `[x]`
+8. **Given** Admin marks Interview User as "Lolos", **When** result is saved, **Then** Stage 7 (Interview User) checkbox automatically becomes `[x]`
+9. **Given** Admin uploads Ijin Desa document and marks as "Ada", **When** data is saved, **Then** Stage 8 (Ijin Desa) checkbox automatically becomes `[x]`
+10. **Given** Admin uploads Rekomendasi document and marks as "Ada", **When** data is saved, **Then** Stage 9 (Rekom) checkbox automatically becomes `[x]`
+11. **Given** Admin marks WP documents as "Lengkap", **When** status is saved, **Then** Stage 10 (WP) checkbox automatically becomes `[x]`
+12. **Given** Admin marks visa application as "Diajukan", **When** status is saved, **Then** Stage 11 (Apply Visa) checkbox automatically becomes `[x]`
+13. **Given** Admin marks Medical Full as "Selesai", **When** completion is saved, **Then** Stage 12 (Medical Full) checkbox automatically becomes `[x]`
+14. **Given** Legal PT marks visa as "Terbit" with visa number, **When** data is saved, **Then** Stage 13 (Visa) checkbox automatically becomes `[x]`
+15. **Given** Admin marks OPP as "Diterima" with receipt date, **When** data is saved, **Then** Stage 14 (OPP) checkbox automatically becomes `[x]`
+16. **Given** Admin marks CTK as "Berangkat" with departure date, **When** final status is saved, **Then** Stage 15 (Terbang) checkbox automatically becomes `[x]` and all 15 stages show complete
+17. **Given** multiple CTKs exist, **When** Admin views CTK list table, **Then** they see progress column showing "X/15" completed stages for each CTK (e.g., "8/15", "15/15")
+18. **Given** CTK has 8 of 15 stages complete, **When** Admin views CTK in list, **Then** they see visual progress indicator (e.g., progress bar at 53%, or "8/15" badge with color coding)
+19. **Given** CTK reaches "Terbang" status with all 15 checkboxes marked `[x]`, **When** Pimpinan views dashboard, **Then** CTK is counted in "Successfully Departed" metric
+20. **Given** CTK has incomplete stages (e.g., missing payment 4 of 5), **When** Admin views workflow, **Then** incomplete items are clearly visible with `[ ]` unchecked and highlighted as pending
+
+---
+
 ### Edge Cases
 
 - What happens when CTK fails Medical Full after passing all previous stages? (System should allow status reversion with approval and audit log)
@@ -223,6 +256,11 @@ All CTK status changes, document uploads, and data modifications are automatical
 - How does system handle CTK cancellation at any stage? (Add "Batal" status available from any stage with cancellation reason and date)
 - What happens when required documents are uploaded in wrong format? (Validate file types on upload, show clear error with accepted formats)
 - How does system prevent unauthorized entity crossover? (Enforce entity scoping at query level with middleware and policy checks)
+- What happens when stage-specific data is deleted after checkbox is marked complete? (Checkbox automatically reverts to unchecked `[ ]` and completion count decreases)
+- How does system handle CTK with some stages complete but trying to advance to non-sequential stage? (Prevent advancement, show error indicating prerequisite stages must be completed first)
+- What happens when admin uploads payment proof but forgets to set payment status to "Lunas"? (Checkbox remains unchecked until both proof AND status are complete)
+- How does system display progress for CTK stuck at one stage for extended period? (Show days in current stage alongside completion progress to identify bottlenecks)
+- What happens when CTK data is imported from legacy system with incomplete stage tracking data? (Show partial completion with clear indicators of missing data, allow manual data entry to complete stages)
 
 ## Requirements *(mandatory)*
 
@@ -263,6 +301,13 @@ All CTK status changes, document uploads, and data modifications are automatical
 - **FR-033**: System MUST allow bulk actions for multiple CTK records (bulk status update, bulk document request)
 - **FR-034**: System MUST export CTK data and reports in PDF and Excel formats for reporting
 - **FR-035**: System MUST provide dashboard statistics: CTK count by stage, average processing time per stage, success rate (Terbang/Total), pending actions count
+- **FR-036**: System MUST track stage completion status for all 15 stages using boolean flags or computed properties based on stage-specific data (e.g., MCU complete when status=FIT, Payment stage complete when all 5 payments have proof uploaded)
+- **FR-037**: System MUST automatically mark stage as complete (checkbox `[x]`) when stage-specific completion criteria are met: MCU (status=FIT), Pembayaran (all 5 payments with proof), Soal/Berkas (document uploaded AND status=Lengkap), Paspor (paspor_number filled), Belajar di LPK (training_status=Selesai), Screening 1 (result=Lolos), Interview User (result=Lolos), Ijin Desa (document uploaded AND status=Ada), Rekomendasi (document uploaded AND status=Ada), WP (status=Lengkap), Apply Visa (status=Diajukan), Medical Full (status=Selesai), Visa (status=Terbit AND visa_number filled), OPP (status=Diterima AND receipt_date filled), Terbang (status=Berangkat AND departure_date filled)
+- **FR-038**: System MUST display visual workflow in CTK detail view showing all 15 stages with checkbox indicators (`[ ]` for incomplete, `[x]` for complete) matching the structure defined in alur_ctk.md template
+- **FR-039**: System MUST display completion progress in CTK list table showing "X/15" format (e.g., "8/15") indicating how many stages are complete out of 15 total stages
+- **FR-040**: System MUST provide visual progress indicator (progress bar or color-coded badge) in CTK list showing percentage completion (calculated as completed_stages / 15 * 100)
+- **FR-041**: System MUST show substage completion for multi-step stages (e.g., Pembayaran shows "3/5" when 3 of 5 payments complete, allowing granular progress tracking)
+- **FR-042**: System MUST prevent manual manipulation of stage completion checkboxes - completion status is derived automatically from actual data presence and stage-specific status values, ensuring data integrity
 
 ### Key Entities
 
@@ -300,6 +345,12 @@ All CTK status changes, document uploads, and data modifications are automatical
 - **SC-010**: Admin can export CTK data and complete audit trail in PDF or Excel format within 10 seconds for up to 1000 records
 - **SC-011**: System handles concurrent updates to different CTK records by multiple users without data corruption or race conditions
 - **SC-012**: Users can upload documents up to 10MB in supported formats (PDF, JPG, PNG) with validation feedback within 3 seconds
+- **SC-013**: Stage completion checkboxes automatically update from `[ ]` to `[x]` within 1 second of stage-specific data being saved (e.g., MCU result, payment proof upload, document upload)
+- **SC-014**: CTK list table displays accurate completion progress ("X/15" format) for all CTK records, updating in real-time when any stage completion status changes
+- **SC-015**: Visual workflow in CTK detail view renders all 15 stages with correct checkbox states matching actual data within 2 seconds of page load
+- **SC-016**: Stage completion status is computed correctly 100% of the time based on actual data presence (cannot be manually manipulated), ensuring data integrity
+- **SC-017**: Admin can identify at a glance which CTKs need attention by viewing completion progress in list view, with incomplete CTKs (< 15/15) clearly distinguishable from complete CTKs
+- **SC-018**: When CTK reaches "Terbang" status, system validates that all 15 stage checkboxes are marked complete (`[x]`) with 100% accuracy before allowing final status confirmation
 
 ## Assumptions
 
