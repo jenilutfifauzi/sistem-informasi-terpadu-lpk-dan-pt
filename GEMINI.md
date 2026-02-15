@@ -279,6 +279,45 @@ document.addEventListener('livewire:init', function () {
 - Tests should test all of the happy paths, failure paths, and weird paths.
 - You must not remove any tests or test files from the tests directory without approval. These are not temporary or helper files; these are core to the application.
 
+### Test Database Strategy
+- **DO NOT use `RefreshDatabase` trait** - It resets the entire database for each test which is slow and can cause issues
+- **USE database transactions instead** - Wrap tests in transactions that rollback automatically after each test
+- This approach is faster and more reliable:
+  - Transactions rollback automatically (cleanup is guaranteed)
+  - Tests run in parallel without conflicts
+  - Database state is consistent across test runs
+  - No data pollution between tests
+
+<code-snippet name="Correct Test Setup with Transactions" lang="php">
+use Tests\TestCase;
+use Illuminate\Foundation\Testing\WithoutMiddleware;
+use Illuminate\Support\Facades\DB;
+
+class CTKTest extends TestCase
+{
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // Start transaction that will rollback after each test
+        DB::beginTransaction();
+    }
+
+    protected function tearDown(): void
+    {
+        // Automatically rollback all database changes
+        DB::rollBack();
+        parent::tearDown();
+    }
+
+    /** @test */
+    public function test_something()
+    {
+        // Test code here
+        // All database changes will be rolled back
+    }
+}
+</code-snippet>
+
 ### Running Tests
 - Run the minimal number of tests, using an appropriate filter, before finalizing.
 - To run all tests: `php artisan test --compact`.

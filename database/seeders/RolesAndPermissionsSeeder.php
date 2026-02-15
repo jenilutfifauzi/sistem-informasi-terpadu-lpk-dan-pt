@@ -2,10 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class RolesAndPermissionsSeeder extends Seeder
 {
@@ -46,6 +45,24 @@ class RolesAndPermissionsSeeder extends Seeder
         $this->createKeuanganPTRole();
         $this->createKeuanganLPKRole();
         $this->createPimpinanRole();
+
+        // Call CTK permissions seeder
+        $this->call(CTKPermissionsSeeder::class);
+
+        // Sync super_admin with all permissions again after CTK permissions are created
+        $this->syncSuperAdminPermissions();
+    }
+
+    /**
+     * Sync super_admin role with all permissions
+     */
+    private function syncSuperAdminPermissions(): void
+    {
+        $role = Role::where('name', 'super_admin')->first();
+        if ($role) {
+            $permissions = Permission::where('guard_name', 'web')->get();
+            $role->syncPermissions($permissions);
+        }
     }
 
     /**
