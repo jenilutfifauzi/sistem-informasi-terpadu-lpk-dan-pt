@@ -3,10 +3,14 @@
 namespace App\Filament\Resources\Users\Tables;
 
 use App\Enums\EntityType;
+use App\Filament\Exports\UserExport;
+use Filament\Actions;
+use Filament\Forms;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Maatwebsite\Excel\Facades\Excel;
 
 class UsersTable
 {
@@ -54,6 +58,31 @@ class UsersTable
                     ->preload()
                     ->searchable(),
                 TrashedFilter::make(),
+            ])
+            ->headerActions([
+                Actions\Action::make('export')
+                    ->label('Export CSV')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('success')
+                    ->action(function ($livewire) {
+                        $query = $livewire->getFilteredTableQuery();
+                        $export = new UserExport($query);
+
+                        activity()
+                            ->causedBy(auth()->user())
+                            ->withProperties([
+                                'export_type' => 'user',
+                                'format' => 'csv',
+                                'record_count' => $query->count(),
+                            ])
+                            ->log('Data exported');
+
+                        return Excel::download(
+                            $export,
+                            'users-'.now()->format('Y-m-d').'.csv',
+                            \Maatwebsite\Excel\Excel::CSV
+                        );
+                    }),
             ]);
     }
 }

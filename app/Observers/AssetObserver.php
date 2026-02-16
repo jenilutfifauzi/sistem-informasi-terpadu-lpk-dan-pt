@@ -16,12 +16,12 @@ class AssetObserver
     public function creating(Asset $asset): void
     {
         // Auto-set entity based on authenticated user's entity
-        if (!$asset->entity && Auth::check()) {
+        if (! $asset->entity && Auth::check()) {
             $asset->entity = Auth::user()->entity;
         }
 
         // Auto-generate nomor_inventaris if not provided
-        if (!$asset->nomor_inventaris) {
+        if (! $asset->nomor_inventaris) {
             $asset->nomor_inventaris = AssetNumberGenerator::generate(
                 $asset->entity,
                 $asset->kategori,
@@ -30,7 +30,7 @@ class AssetObserver
         }
 
         // Set created_by
-        if (!$asset->created_by && Auth::check()) {
+        if (! $asset->created_by && Auth::check()) {
             $asset->created_by = Auth::id();
         }
     }
