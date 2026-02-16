@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Enums\JabatanLPK;
 use App\Enums\StatusKepegawaian;
+use App\Filament\Exports\EmployeeLPKExport;
 use App\Filament\Resources\EmployeeLPKResource\Pages;
 use App\Models\EmployeeLPK;
 use Filament\Actions;
@@ -14,6 +15,7 @@ use Filament\Schemas;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Maatwebsite\Excel\Facades\Excel;
 
 class EmployeeLPKResource extends Resource
 {
@@ -208,6 +210,31 @@ class EmployeeLPKResource extends Resource
                     ->query(fn ($query) => $query->whereNotNull('honor_pokok')),
                 Tables\Filters\TrashedFilter::make()
                     ->label('Tampilkan Data Resign'),
+            ])
+            ->headerActions([
+                Actions\Action::make('export')
+                    ->label('Export CSV')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('success')
+                    ->action(function ($livewire) {
+                        $query = $livewire->getFilteredTableQuery();
+                        $export = new EmployeeLPKExport($query);
+
+                        activity()
+                            ->causedBy(auth()->user())
+                            ->withProperties([
+                                'export_type' => 'karyawan_lpk',
+                                'format' => 'csv',
+                                'record_count' => $query->count(),
+                            ])
+                            ->log('Data exported');
+
+                        return Excel::download(
+                            $export,
+                            'karyawan-lpk-'.now()->format('Y-m-d').'.csv',
+                            \Maatwebsite\Excel\Excel::CSV
+                        );
+                    }),
             ])
             ->actions([
                 Actions\ViewAction::make(),

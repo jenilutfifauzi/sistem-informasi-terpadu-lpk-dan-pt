@@ -3,13 +3,16 @@
 namespace App\Filament\Resources\CTKS\Tables;
 
 use App\Enums\EntityType;
+use App\Filament\Exports\CTKExport;
 use App\Filament\Resources\CTKS\CTKResource;
 use Filament\Actions;
+use Filament\Forms;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Maatwebsite\Excel\Facades\Excel;
 
 class CTKSTable
 {
@@ -121,6 +124,31 @@ class CTKSTable
                             }),
                             default => $query,
                         };
+                    }),
+            ])
+            ->headerActions([
+                Actions\Action::make('export')
+                    ->label('Export CSV')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('success')
+                    ->action(function ($livewire) {
+                        $query = $livewire->getFilteredTableQuery();
+                        $export = new CTKExport($query);
+
+                        activity()
+                            ->causedBy(auth()->user())
+                            ->withProperties([
+                                'export_type' => 'ctk',
+                                'format' => 'csv',
+                                'record_count' => $query->count(),
+                            ])
+                            ->log('Data exported');
+
+                        return Excel::download(
+                            $export,
+                            'ctk-'.now()->format('Y-m-d').'.csv',
+                            \Maatwebsite\Excel\Excel::CSV
+                        );
                     }),
             ])
             ->actions([

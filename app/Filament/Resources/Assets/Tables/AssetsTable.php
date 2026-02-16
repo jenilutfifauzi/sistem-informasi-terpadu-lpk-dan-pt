@@ -6,12 +6,17 @@ use App\Enums\AssetAssignmentStatus;
 use App\Enums\AssetCategory;
 use App\Enums\AssetCondition;
 use App\Enums\EntityType;
+use App\Filament\Exports\AssetExport;
 use App\Filament\Resources\Assets\AssetResource;
+use Filament\Actions\Action;
+use Filament\Forms\Components\Select;
+use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
 
 class AssetsTable
 {
@@ -105,6 +110,43 @@ class AssetsTable
                     )),
 
                 TrashedFilter::make(),
+            ])
+            ->headerActions([
+                Action::make('export')
+                    ->label('Export CSV')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->action(function ($livewire) {
+                        $query = $livewire->getFilteredTableQuery();
+                        $count = $query->count();
+
+                        if ($count === 0) {
+                            Notification::make()
+                                ->warning()
+                                ->title('No Data to Export')
+                                ->body('There are no assets matching the current filters.')
+                                ->send();
+
+                            return;
+                        }
+
+                        // Log export activity
+                        activity()
+                            ->causedBy(Auth::user())
+                            ->withProperties([
+                                'exported_count' => $count,
+                                'format' => 'csv',
+                                'model' => 'Asset',
+                            ])
+                            ->log('Exported '.$count.' assets to csv');
+
+                        $filename = 'assets_'.now()->format('Y-m-d_His').'.csv';
+
+                        return Excel::download(
+                            new AssetExport($query),
+                            $filename,
+                            \Maatwebsite\Excel\Excel::CSV
+                        );
+                    }),
             ])
             ->recordUrl(fn ($record) => AssetResource::getUrl('view', ['record' => $record]))
             ->defaultSort('created_at', 'desc')

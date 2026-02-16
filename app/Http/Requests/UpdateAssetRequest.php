@@ -30,7 +30,7 @@ class UpdateAssetRequest extends FormRequest
             'jumlah' => ['required', 'integer', 'min:1'],
             'satuan' => ['required', 'string', 'max:50'],
             'kondisi' => ['required', Rule::enum(AssetCondition::class)],
-            'tahun_pembelian' => ['required', 'integer', 'between:1900,' . date('Y')],
+            'tahun_pembelian' => ['required', 'integer', 'between:1900,'.date('Y')],
             'nilai_pembelian' => ['nullable', 'numeric', 'min:0'],
             'lokasi' => ['nullable', 'string', 'max:255'],
             'keterangan' => ['nullable', 'string'],
@@ -58,4 +58,3 @@ class UpdateAssetRequest extends FormRequest
         ];
     }
 }
-

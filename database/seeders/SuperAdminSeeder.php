@@ -45,14 +45,14 @@ class SuperAdminSeeder extends Seeder
             'create_user',
             'update_user',
             'delete_user',
-            
+
             // CTK permissions
             'view_ctk',
             'view_any_ctk',
             'create_ctk',
             'update_ctk',
             'delete_ctk',
-            
+
             // Asset permissions
             'view_asset',
             'view_any_asset',
@@ -66,7 +66,7 @@ class SuperAdminSeeder extends Seeder
                 ['name' => $permissionName, 'guard_name' => 'web']
             );
         }
-        $this->command->info("  ✓ Created " . count($permissions) . " permissions");
+        $this->command->info('  ✓ Created '.count($permissions).' permissions');
 
         $this->command->info('');
         $this->command->info('🔄 Assigning permissions to roles...');
@@ -74,7 +74,7 @@ class SuperAdminSeeder extends Seeder
         // Assign all permissions to super_admin
         $superAdminRole = Role::findByName('super_admin');
         $superAdminRole->syncPermissions(Permission::all());
-        $this->command->info("  ✓ super_admin: all permissions");
+        $this->command->info('  ✓ super_admin: all permissions');
 
         // Pimpinan: read-only access
         $pimpinanRole = Role::findByName('Pimpinan');
@@ -83,7 +83,7 @@ class SuperAdminSeeder extends Seeder
             'view_ctk', 'view_any_ctk',
             'view_asset', 'view_any_asset',
         ]);
-        $this->command->info("  ✓ Pimpinan: read-only permissions");
+        $this->command->info('  ✓ Pimpinan: read-only permissions');
 
         // Admin PT: full access to PT entity
         $adminPTRole = Role::findByName('Admin PT');
@@ -92,7 +92,7 @@ class SuperAdminSeeder extends Seeder
             'view_ctk', 'view_any_ctk', 'create_ctk', 'update_ctk', 'delete_ctk',
             'view_asset', 'view_any_asset', 'create_asset', 'update_asset', 'delete_asset',
         ]);
-        $this->command->info("  ✓ Admin PT: full permissions");
+        $this->command->info('  ✓ Admin PT: full permissions');
 
         // Admin LPK: full access to LPK entity
         $adminLPKRole = Role::findByName('Admin LPK');
@@ -101,7 +101,7 @@ class SuperAdminSeeder extends Seeder
             'view_ctk', 'view_any_ctk', 'create_ctk', 'update_ctk', 'delete_ctk',
             'view_asset', 'view_any_asset', 'create_asset', 'update_asset', 'delete_asset',
         ]);
-        $this->command->info("  ✓ Admin LPK: full permissions");
+        $this->command->info('  ✓ Admin LPK: full permissions');
 
         // Keuangan: read-only
         $keuanganPTRole = Role::findByName('Keuangan PT');
@@ -109,14 +109,14 @@ class SuperAdminSeeder extends Seeder
             'view_ctk', 'view_any_ctk',
             'view_asset', 'view_any_asset',
         ]);
-        $this->command->info("  ✓ Keuangan PT: read-only permissions");
+        $this->command->info('  ✓ Keuangan PT: read-only permissions');
 
         $keuanganLPKRole = Role::findByName('Keuangan LPK');
         $keuanganLPKRole->syncPermissions([
             'view_ctk', 'view_any_ctk',
             'view_asset', 'view_any_asset',
         ]);
-        $this->command->info("  ✓ Keuangan LPK: read-only permissions");
+        $this->command->info('  ✓ Keuangan LPK: read-only permissions');
 
         $this->command->info('');
         $this->command->info('🔄 Creating superadmin user...');
@@ -141,18 +141,18 @@ class SuperAdminSeeder extends Seeder
 
             $superadmin->assignRole('super_admin');
 
-            $this->command->info("  ✓ Superadmin created!");
+            $this->command->info('  ✓ Superadmin created!');
             $this->command->info("     Email: {$superadminEmail}");
-            $this->command->warn("     Password: password (⚠️  GANTI SEGERA!)");
+            $this->command->warn('     Password: password (⚠️  GANTI SEGERA!)');
         }
 
         $this->command->info('');
         $this->command->info('✅ SuperAdminSeeder completed!');
         $this->command->info('');
         $this->command->line('Summary:');
-        $this->command->line('  - Roles: ' . Role::count());
-        $this->command->line('  - Permissions: ' . Permission::count());
-        $this->command->line('  - Total Users: ' . User::count());
-        $this->command->line('  - Users with roles: ' . User::has('roles')->count());
+        $this->command->line('  - Roles: '.Role::count());
+        $this->command->line('  - Permissions: '.Permission::count());
+        $this->command->line('  - Total Users: '.User::count());
+        $this->command->line('  - Users with roles: '.User::has('roles')->count());
     }
 }
