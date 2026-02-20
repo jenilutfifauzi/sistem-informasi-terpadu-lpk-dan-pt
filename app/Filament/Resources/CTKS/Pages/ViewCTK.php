@@ -26,6 +26,10 @@ class ViewCTK extends ViewRecord
             ->components([
                 Section::make('Data Pribadi')
                     ->schema([
+                        \Filament\Infolists\Components\ImageEntry::make('photo')
+                            ->label('Foto')
+                            ->disk('public')
+                            ->columnSpanFull(),
                         TextEntry::make('nik')
                             ->label('NIK')
                             ->copyable(),

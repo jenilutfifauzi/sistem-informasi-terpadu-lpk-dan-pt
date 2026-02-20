@@ -18,6 +18,12 @@ class CTKForm
                 Section::make('Data Pribadi')
                     ->description('Informasi data pribadi Calon Tenaga Kerja')
                     ->schema([
+                        \Filament\Forms\Components\FileUpload::make('photo')
+                            ->label('Foto CTK')
+                            ->image()
+                            ->disk('public')
+                            ->directory('ctk-photos')
+                            ->columnSpanFull(),
                         TextInput::make('nik')
                             ->label('NIK')
                             ->required()

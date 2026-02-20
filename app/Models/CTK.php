@@ -20,6 +20,7 @@ class CTK extends Model
 
     protected $fillable = [
         'nik',
+        'photo',
         'nama_lengkap',
         'tanggal_lahir',
         'jenis_kelamin',
