@@ -20,6 +20,10 @@ class CTKSTable
     {
         return $table
             ->columns([
+                \Filament\Tables\Columns\ImageColumn::make('photo')
+                    ->label('Foto')
+                    ->disk('public')
+                    ->circular(),
                 TextColumn::make('nik')
                     ->label('NIK')
                     ->searchable()
