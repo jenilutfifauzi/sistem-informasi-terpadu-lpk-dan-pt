@@ -60,6 +60,13 @@ class EmployeeLPKResource extends Resource
                             ->length(16)
                             ->disabled(fn (?EmployeeLPK $record) => $record !== null)
                             ->dehydrated(),
+                        Forms\Components\FileUpload::make('foto_path')
+                            ->label('Foto Karyawan')
+                            ->image()
+                            ->disk('public')
+                            ->directory('karyawan-photos')
+                            ->maxSize(2048)
+                            ->columnSpanFull(),
                         Forms\Components\TextInput::make('email')
                             ->label('Email')
                             ->email()
@@ -153,6 +160,11 @@ class EmployeeLPKResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\ImageColumn::make('foto_path')
+                    ->label('Foto')
+                    ->circular()
+                    ->disk('public')
+                    ->defaultImageUrl(url('/images/default-avatar.png')),
                 Tables\Columns\TextColumn::make('nama_lengkap')
                     ->label('Nama Lengkap')
                     ->searchable()
@@ -258,6 +270,12 @@ class EmployeeLPKResource extends Resource
                 // Personal Information Section
                 Schemas\Components\Section::make('Informasi Personal')
                     ->schema([
+                        Infolists\Components\ImageEntry::make('foto_path')
+                            ->label('Foto')
+                            ->circular()
+                            ->disk('public')
+                            ->defaultImageUrl(url('/images/default-avatar.png'))
+                            ->columnSpanFull(),
                         Infolists\Components\TextEntry::make('nama_lengkap')
                             ->label('Nama Lengkap'),
                         Infolists\Components\TextEntry::make('nik')
