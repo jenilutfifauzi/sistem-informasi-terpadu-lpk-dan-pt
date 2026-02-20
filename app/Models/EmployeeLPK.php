@@ -30,6 +30,7 @@ class EmployeeLPK extends Model
         'tanggal_bergabung',
         'honor_pokok',
         'honor_per_jam',
+        'foto_path',
         'sertifikat_path',
         'created_by',
         'updated_by',
