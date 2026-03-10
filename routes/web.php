@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CTKDocumentController;
+use App\Http\Controllers\EmployeeDokumenPTController;
 use App\Http\Controllers\EmployeeSertifikatController;
 use Illuminate\Support\Facades\Route;
 
@@ -27,4 +28,9 @@ Route::get('/karyawan-lpk/{employee}/sertifikat/download', [EmployeeSertifikatCo
 // CTK Document download route
 Route::get('/ctk/documents/{document}/download', [CTKDocumentController::class, 'download'])
     ->name('ctk.documents.download')
+    ->middleware('auth');
+
+// Employee PT dokumen kepegawaian download route
+Route::get('/karyawan-pt/{employee}/dokumen/download', [EmployeeDokumenPTController::class, 'download'])
+    ->name('karyawan-pt.dokumen.download')
     ->middleware('auth');
