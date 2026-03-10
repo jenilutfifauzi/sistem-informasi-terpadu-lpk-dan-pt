@@ -12,6 +12,7 @@ Auto-generated from all feature plans. Last updated: 2026-01-13
 - MySQL/MariaDB (existing CTK table, no schema changes required) (006-ctk-view-actions)
 - PHP 8.4.5 + Laravel 11, Filament v4, Livewire v3 (007-ctk-edit-stages-separation)
 - PHP 8.4.5 + Laravel 11, Filament v4, Livewire v3, Laravel Excel (maatwebsite/excel) (008-data-export-buttons)
+- MySQL/MariaDB (tabel `karyawan_pt` baru, terpisah dari `karyawan_lpk`) (009-karyawan-pt-resource)
 
 - PHP 8.4.5 (001-user-management-rbac)
 
@@ -31,9 +32,9 @@ tests/
 PHP 8.4.5: Follow standard conventions
 
 ## Recent Changes
+- 009-karyawan-pt-resource: Added PHP 8.4.5
 - 008-data-export-buttons: Added PHP 8.4.5 + Laravel 11, Filament v4, Livewire v3, Laravel Excel (maatwebsite/excel)
 - 007-ctk-edit-stages-separation: Added PHP 8.4.5 + Laravel 11, Filament v4, Livewire v3
-- 007-ctk-edit-stages-separation: Added [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
 
 
 <!-- MANUAL ADDITIONS START -->

@@ -1,0 +1,2 @@
+#!/bin/zsh
+export PATH="/opt/homebrew/Cellar/php/8.4.5_1:/opt/homebrew/Cellar/php/8.4.5_1/bin:/opt/homebrew/Cellar/php/8.4.5_1/sbin:$PATH" #FlyEnv-ID-hbpYI0rfr3wrlDrdy2po3M9xDMuFZpmz
