@@ -1,46 +1,43 @@
-<div class="space-y-2">
+<div style="display: flex; flex-direction: column; gap: 10px;">
     @foreach($visas as $visa)
-        <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
-            <div class="flex justify-between items-start">
-                <div class="flex-1">
-                    <div class="flex items-center gap-2">
-                        <p class="font-semibold text-sm">
+        <div style="display: flex; align-items: flex-start; gap: 12px; border: 1px solid rgba(156, 163, 175, 0.18); border-radius: 10px; padding: 10px; background: rgba(31, 41, 55, 0.35);">
+            <div style="flex: 0 0 56px; width: 56px; height: 56px; min-width: 56px; min-height: 56px; border-radius: 8px; border: 1px solid rgba(156, 163, 175, 0.2); display: flex; align-items: center; justify-content: center; background: rgba(17, 24, 39, 0.45); font-size: 11px; font-weight: 700; line-height: 1.1; text-align: center;">Visa</div>
+            <div style="flex: 1 1 auto; min-width: 0;">
+                <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;">
+                    <div style="min-width: 0; flex: 1 1 auto;">
+                        <div style="font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                             @if($visa->visa_number)
                                 Visa #{{ $visa->visa_number }}
                             @else
                                 Pengajuan Visa
                             @endif
-                        </p>
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                            {{ $visa->application_status === 'Terbit'
-                                ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                                : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' }}">
-                            {{ $visa->application_status }}
-                        </span>
+                        </div>
+                        <div style="font-size: 12px; opacity: 0.78; margin-top: 2px;">Tanggal Pengajuan: {{ $visa->application_date->format('d M Y') }}</div>
                     </div>
-                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                        Tanggal Pengajuan: {{ $visa->application_date->format('d M Y') }}
-                    </p>
+                    <span style="flex: 0 0 auto; padding: 3px 8px; border-radius: 999px; font-size: 10px; font-weight: 600; line-height: 1; {{ $visa->application_status === 'Terbit' ? 'background: rgba(34, 197, 94, 0.16); color: #86efac;' : 'background: rgba(245, 158, 11, 0.16); color: #fcd34d;' }}">
+                            {{ $visa->application_status }}
+                    </span>
+                </div>
+
+                <div style="margin-top: 6px; display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; opacity: 0.75;">
                     @if($visa->application_status === 'Terbit')
-                        <p class="text-sm text-gray-600 dark:text-gray-400">
-                            Tanggal Terbit: {{ $visa->issuance_date->format('d M Y') }}
-                        </p>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">
-                            Kadaluarsa: {{ $visa->expiry_date->format('d M Y') }}
-                        </p>
+                        <span>Tanggal Terbit: {{ $visa->issuance_date->format('d M Y') }}</span>
+                        <span>Kadaluarsa: {{ $visa->expiry_date->format('d M Y') }}</span>
                         @if($visa->issuing_country)
-                            <p class="text-sm text-gray-600 dark:text-gray-400">
-                                Negara: {{ $visa->issuing_country }} | Jenis: {{ $visa->visa_type }}
-                            </p>
+                            <span>Negara: {{ $visa->issuing_country }}</span>
+                            <span>Jenis: {{ $visa->visa_type }}</span>
+                        @endif
+                        @if($visa->visa_document_path)
+                            <span>Dokumen: {{ basename($visa->visa_document_path) }}</span>
                         @endif
                         @if($visa->expiry_date->diffInDays(now()) <= 30 && $visa->expiry_date->isFuture())
-                            <p class="text-sm text-orange-600 dark:text-orange-400 mt-1 font-semibold">
+                            <span style="color: #fcd34d; font-weight: 600;">
                                 ⚠️ Visa akan kadaluarsa dalam {{ $visa->expiry_date->diffInDays(now()) }} hari
-                            </p>
+                            </span>
                         @elseif($visa->expiry_date->isPast())
-                            <p class="text-sm text-red-600 dark:text-red-400 mt-1 font-semibold">
+                            <span style="color: #fca5a5; font-weight: 600;">
                                 ⚠️ Visa sudah kadaluarsa
-                            </p>
+                            </span>
                         @endif
                     @endif
                 </div>

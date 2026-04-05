@@ -2,9 +2,13 @@
 
 namespace App\Filament\Resources\CTKS\Pages;
 
+use App\Enums\DocumentType;
+use App\Enums\ScreeningStage;
 use App\Filament\Resources\CTKS\CTKResource;
 use Filament\Actions\EditAction;
+use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\ViewEntry;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -24,10 +28,12 @@ class ViewCTK extends ViewRecord
     {
         return $schema
             ->components([
+                // ==================== DATA PRIBADI ====================
                 Section::make('Data Pribadi')
+                    ->description('Informasi data pribadi Calon Tenaga Kerja')
                     ->schema([
-                        \Filament\Infolists\Components\ImageEntry::make('photo')
-                            ->label('Foto')
+                        ImageEntry::make('photo')
+                            ->label('Foto CTK')
                             ->disk('public')
                             ->columnSpanFull(),
                         TextEntry::make('nik')
@@ -43,7 +49,10 @@ class ViewCTK extends ViewRecord
                             ->badge(),
                     ])
                     ->columns(2),
+
+                // ==================== INFORMASI KONTAK ====================
                 Section::make('Informasi Kontak')
+                    ->description('Data kontak dan alamat')
                     ->schema([
                         TextEntry::make('alamat')
                             ->label('Alamat Lengkap')
@@ -58,322 +67,328 @@ class ViewCTK extends ViewRecord
                     ])
                     ->columns(2),
 
-                // Workflow Stage Tracking - Visual Progress
-                Section::make('📋 Progress Tahapan CTK')
-                    ->description(fn ($record) => "Progress keseluruhan: {$record->completion_progress} ({$record->completion_percentage}%) - Centang otomatis saat data/dokumen diisi")
+                Section::make('Semua Dokumen CTK')
+                    ->description('Seluruh dokumen dan lampiran yang tersimpan pada proses CTK')
                     ->schema([
-                        TextEntry::make('nik')
-                            ->label('')
-                            ->state(fn ($record) => $record->nik) // Dummy state to get record
-                            ->formatStateUsing(function ($state, $record) {
-                                $stages = [
-                                    1 => ['name' => 'MCU', 'details' => 'Status: FIT'],
-                                    2 => ['name' => 'Pembayaran', 'details' => $record->payment_progress.' payments complete'],
-                                    3 => ['name' => 'Soal / Berkas', 'details' => 'Upload / Lengkap'],
-                                    4 => ['name' => 'Paspor', 'details' => 'No: '.($record->paspor_number ?? '...')],
-                                    5 => ['name' => 'Belajar di LPK', 'details' => 'Selesai'],
-                                    6 => ['name' => 'Screening 1', 'details' => 'Lolos'],
-                                    7 => ['name' => 'Interview User', 'details' => 'Lolos'],
-                                    8 => ['name' => 'Ijin Desa', 'details' => 'Ada'],
-                                    9 => ['name' => 'Rekom', 'details' => 'Ada'],
-                                    10 => ['name' => 'WP', 'details' => 'Lengkap'],
-                                    11 => ['name' => 'Apply Visa', 'details' => 'Diajukan'],
-                                    12 => ['name' => 'Medical Full', 'details' => 'Selesai'],
-                                    13 => ['name' => 'Visa', 'details' => 'Terbit'],
-                                    14 => ['name' => 'OPP', 'details' => 'Diterima'],
-                                    15 => ['name' => 'Terbang', 'details' => 'Berangkat'],
-                                ];
-
-                                $html = '<div class="grid grid-cols-1 md:grid-cols-3 gap-3">';
-
-                                foreach ($stages as $stageNum => $stageInfo) {
-                                    $isComplete = $record->{"stage{$stageNum}_complete"};
-                                    $checkbox = $isComplete ? '✅' : '⬜';
-                                    $textColor = $isComplete ? 'text-success-600 font-semibold' : 'text-gray-500';
-                                    $bgColor = $isComplete ? 'bg-success-50 border-success-200' : 'bg-gray-50 border-gray-200';
-
-                                    $html .= <<<HTML
-                                        <div class="flex items-start gap-2 p-3 rounded-lg border {$bgColor}">
-                                            <span class="text-2xl">{$checkbox}</span>
-                                            <div class="flex-1">
-                                                <div class="{$textColor} font-medium">
-                                                    {$stageNum}. {$stageInfo['name']}
-                                                </div>
-                                                <div class="text-xs text-gray-600 mt-1">
-                                                    {$stageInfo['details']}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    HTML;
-                                }
-
-                                $html .= '</div>';
-
-                                return new \Illuminate\Support\HtmlString($html);
-                            })
+                        ViewEntry::make('all_documents_view')
+                            ->label('Daftar Semua Dokumen')
+                            ->view('filament.infolists.all-ctk-documents', fn ($record): array => [
+                                'documents' => $record ? $this->collectAllDocuments($record) : [],
+                            ])
+                            ->placeholder('Belum ada dokumen')
                             ->columnSpanFull(),
                     ])
                     ->collapsible()
-                    ->collapsed(false),
+                    ->collapsed(fn ($record) => $this->collectAllDocuments($record) === [])
+                    ->columns(1),
 
-                Section::make('Riwayat MCU (Medical Check-Up)')
-                    ->description('Rekaman pemeriksaan kesehatan yang telah dilakukan')
+                // ==================== STAGE 1: MCU ====================
+                Section::make('1. MCU (Medical Check-Up)')
+                    ->description(fn ($record) => $this->getStatusBadge($record, 1) ?? 'Rekam hasil pemeriksaan kesehatan untuk calon TKI')
                     ->schema([
-                        TextEntry::make('mcuRecords')
-                            ->label('')
-                            ->listWithLineBreaks()
-                            ->bulleted()
-                            ->formatStateUsing(function ($record) {
-                                $mcuRecords = $record->mcuRecords;
-
-                                if ($mcuRecords->isEmpty()) {
-                                    return 'Belum ada rekaman MCU';
-                                }
-
-                                return $mcuRecords->map(function ($mcu) {
-                                    $status = $mcu->status->value ?? 'N/A';
-                                    $date = $mcu->examination_date?->format('d F Y') ?? 'N/A';
-                                    $clinic = $mcu->clinic_name ?? 'N/A';
-                                    $examiner = $mcu->examiner_name ?? 'N/A';
-                                    $notes = $mcu->notes ? " - {$mcu->notes}" : '';
-
-                                    return "Status: {$status} | Tanggal: {$date} | Klinik: {$clinic} | Pemeriksa: {$examiner}{$notes}";
-                                })->join("\n");
-                            })
-                            ->placeholder('Belum ada rekaman MCU'),
+                        ViewEntry::make('mcu_records_view')
+                            ->label('Riwayat MCU')
+                            ->view('filament.infolists.mcu-list', fn ($record): array => [
+                                'mcuRecords' => $record?->mcuRecords ?? collect(),
+                            ])
+                            ->placeholder('Belum ada rekaman MCU')
+                            ->columnSpanFull(),
                     ])
                     ->collapsible()
-                    ->collapsed(fn ($record) => $record->mcuRecords->isEmpty()),
-                Section::make('Riwayat Dokumen')
-                    ->description('Dokumen-dokumen yang telah diupload')
+                    ->persistCollapsed()
+                    ->columns(1),
+
+                // ==================== STAGE 2: PEMBAYARAN ====================
+                Section::make('2. Pembayaran')
+                    ->description(fn ($record) => $this->getStatusBadge($record, 2) ?? 'Rekam pembayaran untuk tahap LPK')
                     ->schema([
-                        TextEntry::make('documents')
-                            ->label('')
-                            ->listWithLineBreaks()
-                            ->bulleted()
-                            ->formatStateUsing(function ($record) {
-                                $documents = $record->documents;
-
-                                if ($documents->isEmpty()) {
-                                    return 'Belum ada dokumen';
-                                }
-
-                                $summary = 'Total: '.$documents->count().'/1 dokumen terupload';
-
-                                $list = $documents->map(function ($doc) {
-                                    $type = $doc->document_type?->getLabel() ?? 'N/A';
-                                    $filename = $doc->filename ?? 'N/A';
-                                    $date = $doc->upload_timestamp?->format('d F Y') ?? 'N/A';
-                                    $uploader = $doc->uploader?->name ?? 'N/A';
-
-                                    return "{$type}: {$filename} | Upload: {$date} | Oleh: {$uploader}";
-                                })->join("\n");
-
-                                return $summary."\n".$list;
-                            })
-                            ->placeholder('Belum ada dokumen'),
+                        ViewEntry::make('payments_view')
+                            ->label('Rincian Pembayaran')
+                            ->view('filament.infolists.payment-list', fn ($record): array => [
+                                'payments' => $record?->payments ?? collect(),
+                            ])
+                            ->placeholder('Belum ada pembayaran')
+                            ->columnSpanFull(),
                     ])
                     ->collapsible()
-                    ->collapsed(fn ($record) => $record->documents->isEmpty()),
-                Section::make('Riwayat Pelatihan')
-                    ->description('Pelatihan yang telah dilakukan di LPK')
+                    ->persistCollapsed()
+                    ->columns(1),
+
+                // ==================== STAGE 3: SOAL/BERKAS ====================
+                Section::make('3. Soal/Berkas')
+                    ->description(fn ($record) => $this->getStatusBadge($record, 3) ?? 'Upload dokumen soal dan berkas untuk proses CTK')
                     ->schema([
-                        TextEntry::make('trainings')
-                            ->label('')
-                            ->listWithLineBreaks()
-                            ->bulleted()
-                            ->formatStateUsing(function ($record) {
-                                $trainings = $record->trainings;
-
-                                if ($trainings->isEmpty()) {
-                                    return 'Belum ada pelatihan';
-                                }
-
-                                $summary = 'Total: '.$trainings->count().' pelatihan | Jam: '.$trainings->sum('training_hours').' jam';
-
-                                $list = $trainings->map(function ($training) {
-                                    $instructor = $training->instructor?->nama_lengkap ?? 'N/A';
-                                    $startDate = $training->training_start_date?->format('d/m/Y') ?? 'N/A';
-                                    $endDate = $training->training_end_date?->format('d/m/Y') ?? '-';
-                                    $location = $training->training_location ?? 'N/A';
-                                    $hours = $training->training_hours ?? 0;
-                                    $status = $training->completion_status ?? 'N/A';
-
-                                    return "Instruktur: {$instructor} | {$startDate} - {$endDate} | {$location} | {$hours} jam | Status: {$status}";
-                                })->join("\n");
-
-                                return $summary."\n".$list;
-                            })
-                            ->placeholder('Belum ada pelatihan'),
+                        ViewEntry::make('soal_berkas_docs')
+                            ->label('Daftar Dokumen Soal/Berkas')
+                            ->view('filament.infolists.document-gallery', fn ($record): array => [
+                                'documents' => $record
+                                    ? $record->documents()->where('document_type', DocumentType::SoalBerkas)->with('uploader')->get()
+                                    : collect(),
+                            ])
+                            ->placeholder('Belum ada dokumen')
+                            ->columnSpanFull(),
                     ])
                     ->collapsible()
-                    ->collapsed(fn ($record) => $record->trainings->isEmpty()),
-                Section::make('Riwayat Screening')
+                    ->persistCollapsed()
+                    ->columns(1),
+
+                // ==================== STAGE 4: PASPOR ====================
+                Section::make('4. Paspor')
+                    ->description(fn ($record) => $this->getStatusBadge($record, 4) ?? 'Input nomor paspor dan upload dokumen paspor')
                     ->schema([
-                        TextEntry::make('screening_summary')
-                            ->label('Ringkasan Screening')
-                            ->formatStateUsing(function ($record) {
-                                $screenings = $record->screenings;
-                                $total = $screenings->count();
-                                $lolos = $screenings->where('screening_result', 'Lolos')->count();
+                        TextEntry::make('paspor_number')
+                            ->label('Nomor Paspor')
+                            ->placeholder('Belum diisi'),
+                        ViewEntry::make('paspor_docs')
+                            ->label('Daftar Dokumen Paspor')
+                            ->view('filament.infolists.document-gallery', fn ($record): array => [
+                                'documents' => $record
+                                    ? $record->documents()->where('document_type', DocumentType::Paspor)->with('uploader')->get()
+                                    : collect(),
+                            ])
+                            ->placeholder('Belum ada dokumen')
+                            ->columnSpanFull(),
+                    ])
+                    ->collapsible()
+                    ->persistCollapsed()
+                    ->columns(1),
 
-                                if ($total === 0) {
-                                    return 'Belum ada screening';
-                                }
+                // ==================== STAGE 5: PELATIHAN ====================
+                Section::make('5. Pelatihan di LPK')
+                    ->description(fn ($record) => $this->getStatusBadge($record, 5) ?? 'Pencatatan pelatihan CTK di LPK dengan instruktur')
+                    ->schema([
+                        ViewEntry::make('trainings_view')
+                            ->label('Riwayat Pelatihan')
+                            ->view('filament.infolists.training-list', fn ($record): array => [
+                                'trainings' => $record ? $record->trainings()->with('instructor')->get() : collect(),
+                            ])
+                            ->placeholder('Belum ada pelatihan')
+                            ->columnSpanFull(),
+                    ])
+                    ->collapsible()
+                    ->columns(1),
 
-                                return "Total: {$total} screening | Lolos: {$lolos}";
-                            }),
-
-                        TextEntry::make('screening_list')
+                // ==================== STAGE 6: SCREENING 1 ====================
+                Section::make('6. Screening 1')
+                    ->description(fn ($record) => $this->getStatusBadge($record, 6) ?? 'Pencatatan screening tahap 1 di PT')
+                    ->schema([
+                        ViewEntry::make('screening1_view')
                             ->label('Daftar Screening')
-                            ->formatStateUsing(function ($record) {
-                                $screenings = $record->screenings()->with('interviewer')->get();
+                            ->view('filament.infolists.screening-list', fn ($record): array => [
+                                'screenings' => $record
+                                    ? $record->screenings()->where('screening_stage', ScreeningStage::Screening1->value)->with('interviewer')->get()
+                                    : collect(),
+                            ])
+                            ->placeholder('Belum ada screening')
+                            ->columnSpanFull(),
+                    ])
+                    ->collapsible()
+                    ->persistCollapsed()
+                    ->columns(1),
 
-                                if ($screenings->isEmpty()) {
-                                    return 'Belum ada screening';
-                                }
+                // ==================== STAGE 7: INTERVIEW USER ====================
+                Section::make('7. Interview User')
+                    ->description(fn ($record) => $this->getStatusBadge($record, 7) ?? 'Pencatatan interview user di PT')
+                    ->schema([
+                        ViewEntry::make('interview_user_view')
+                            ->label('Daftar Interview')
+                            ->view('filament.infolists.screening-list', fn ($record): array => [
+                                'screenings' => $record
+                                    ? $record->screenings()->where('screening_stage', ScreeningStage::InterviewUser->value)->with('interviewer')->get()
+                                    : collect(),
+                            ])
+                            ->placeholder('Belum ada interview')
+                            ->columnSpanFull(),
+                    ])
+                    ->collapsible()
+                    ->persistCollapsed()
+                    ->columns(1),
 
-                                return view('filament.infolists.screening-list', [
-                                    'screenings' => $screenings,
-                                ]);
+                // ==================== STAGE 8: IJIN DESA ====================
+                Section::make('8. Ijin Desa')
+                    ->description(fn ($record) => $this->getStatusBadge($record, 8) ?? 'Status ijin desa dan upload dokumen')
+                    ->schema([
+                        TextEntry::make('ijin_desa_status')
+                            ->label('Status Ijin Desa')
+                            ->badge()
+                            ->color(fn ($state) => match ($state) {
+                                'Ada' => 'success',
+                                default => 'gray',
+                            }),
+                        ViewEntry::make('ijin_desa_docs')
+                            ->label('Daftar Dokumen Ijin Desa')
+                            ->view('filament.infolists.document-gallery', fn ($record): array => [
+                                'documents' => $record
+                                    ? $record->documents()->where('document_type', DocumentType::IjinDesa)->with('uploader')->get()
+                                    : collect(),
+                            ])
+                            ->placeholder('Belum ada dokumen')
+                            ->columnSpanFull(),
+                    ])
+                    ->collapsible()
+                    ->persistCollapsed()
+                    ->columns(1),
+
+                // ==================== STAGE 9: REKOMENDASI ====================
+                Section::make('9. Rekomendasi')
+                    ->description(fn ($record) => $this->getStatusBadge($record, 9) ?? 'Status rekomendasi dan upload dokumen')
+                    ->schema([
+                        TextEntry::make('rekomendasi_status')
+                            ->label('Status Rekomendasi')
+                            ->badge()
+                            ->color(fn ($state) => match ($state) {
+                                'Ada' => 'success',
+                                default => 'gray',
+                            }),
+                        ViewEntry::make('rekomendasi_docs')
+                            ->label('Daftar Dokumen Rekomendasi')
+                            ->view('filament.infolists.document-gallery', fn ($record): array => [
+                                'documents' => $record
+                                    ? $record->documents()->where('document_type', DocumentType::Rekomendasi)->with('uploader')->get()
+                                    : collect(),
+                            ])
+                            ->placeholder('Belum ada dokumen')
+                            ->columnSpanFull(),
+                    ])
+                    ->collapsible()
+                    ->persistCollapsed()
+                    ->columns(1),
+
+                // ==================== STAGE 10: WORKING PERMIT ====================
+                Section::make('10. Working Permit')
+                    ->description(fn ($record) => $this->getStatusBadge($record, 10) ?? 'Status working permit dan upload dokumen')
+                    ->schema([
+                        TextEntry::make('wp_status')
+                            ->label('Status Working Permit')
+                            ->badge()
+                            ->color(fn ($state) => match ($state) {
+                                'Lengkap' => 'success',
+                                default => 'gray',
+                            }),
+                        ViewEntry::make('wp_docs')
+                            ->label('Daftar Dokumen Working Permit')
+                            ->view('filament.infolists.document-gallery', fn ($record): array => [
+                                'documents' => $record
+                                    ? $record->documents()->where('document_type', DocumentType::WorkingPermit)->with('uploader')->get()
+                                    : collect(),
+                            ])
+                            ->placeholder('Belum ada dokumen')
+                            ->columnSpanFull(),
+                    ])
+                    ->collapsible()
+                    ->persistCollapsed()
+                    ->columns(1),
+
+                // ==================== STAGE 11: APPLY VISA ====================
+                Section::make('11. Apply Visa Diajukan')
+                    ->description(fn ($record) => $this->getStatusBadge($record, 11) ?? 'Status pengajuan aplikasi visa')
+                    ->schema([
+                        TextEntry::make('apply_visa_status')
+                            ->label('Status Apply Visa')
+                            ->badge()
+                            ->color(fn ($state) => match ($state) {
+                                'Diajukan' => 'success',
+                                default => 'gray',
                             }),
                     ])
                     ->collapsible()
-                    ->collapsed(fn ($record) => $record->screenings->isEmpty()),
+                    ->persistCollapsed()
+                    ->columns(1),
 
-                Section::make('Riwayat Visa')
+                // ==================== STAGE 12: MEDICAL FULL ====================
+                Section::make('12. Medical Full Examination')
+                    ->description(fn ($record) => $this->getStatusBadge($record, 12) ?? 'Pencatatan pemeriksaan kesehatan lengkap')
                     ->schema([
-                        TextEntry::make('visa_summary')
-                            ->label('Ringkasan Visa')
-                            ->formatStateUsing(function ($record) {
-                                $visas = $record->visaRecords;
-                                $total = $visas->count();
-                                $terbit = $visas->where('application_status', 'Terbit')->count();
-
-                                if ($total === 0) {
-                                    return 'Belum ada pengajuan visa';
-                                }
-
-                                return "Total: {$total} visa | Terbit: {$terbit}";
-                            }),
-
-                        TextEntry::make('visa_list')
-                            ->label('Daftar Visa')
-                            ->formatStateUsing(function ($record) {
-                                $visas = $record->visaRecords;
-
-                                if ($visas->isEmpty()) {
-                                    return 'Belum ada pengajuan visa';
-                                }
-
-                                return view('filament.infolists.visa-list', [
-                                    'visas' => $visas,
-                                ]);
-                            }),
-                    ])
-                    ->collapsible()
-                    ->collapsed(fn ($record) => $record->visaRecords->isEmpty()),
-
-                Section::make('Riwayat Medical Full')
-                    ->schema([
-                        TextEntry::make('medical_full_summary')
-                            ->label('Ringkasan Medical Full')
-                            ->formatStateUsing(function ($record) {
-                                $medicals = $record->medicalFulls;
-                                $total = $medicals->count();
-                                $selesai = $medicals->where('status', 'Selesai')->count();
-                                $needsRenewal = $medicals->filter(fn ($m) => $m->isExpiringSoon())->count();
-
-                                if ($total === 0) {
-                                    return 'Belum ada pemeriksaan medical full';
-                                }
-
-                                $summary = "Total: {$total} pemeriksaan | Selesai: {$selesai}";
-                                if ($needsRenewal > 0) {
-                                    $summary .= " | ⚠️ Perlu Perpanjangan: {$needsRenewal}";
-                                }
-
-                                return $summary;
-                            }),
-
-                        TextEntry::make('medical_full_list')
+                        ViewEntry::make('medical_full_view')
                             ->label('Daftar Medical Full')
-                            ->formatStateUsing(function ($record) {
-                                $medicals = $record->medicalFulls;
-
-                                if ($medicals->isEmpty()) {
-                                    return 'Belum ada pemeriksaan medical full';
-                                }
-
-                                return view('filament.infolists.medical-full-list', [
-                                    'medicals' => $medicals,
-                                ]);
-                            }),
+                            ->view('filament.infolists.medical-full-list', fn ($record): array => [
+                                'medicals' => $record?->medicalFulls ?? collect(),
+                            ])
+                            ->placeholder('Belum ada pemeriksaan medical full')
+                            ->columnSpanFull(),
                     ])
                     ->collapsible()
-                    ->collapsed(fn ($record) => $record->medicalFulls->isEmpty()),
+                    ->collapsed(fn ($record) => ! $record || $record->medicalFulls->isEmpty()),
 
-                Section::make('OPP & Keberangkatan')
+                // ==================== STAGE 13: VISA TERBIT ====================
+                Section::make('13. Visa Terbit')
+                    ->description(fn ($record) => $this->getStatusBadge($record, 13) ?? 'Pencatatan penerbitan visa')
+                    ->schema([
+                        ViewEntry::make('visa_view')
+                            ->label('Daftar Visa')
+                            ->view('filament.infolists.visa-list', fn ($record): array => [
+                                'visas' => $record?->visaRecords ?? collect(),
+                            ])
+                            ->placeholder('Belum ada pengajuan visa')
+                            ->columnSpanFull(),
+                    ])
+                    ->collapsible()
+                    ->collapsed(fn ($record) => ! $record || $record->visaRecords->isEmpty()),
+
+                // ==================== STAGE 14: OPP ====================
+                Section::make('14. OPP')
+                    ->description(fn ($record) => $this->getStatusBadge($record, 14) ?? 'Pencatatan penerimaan OPP (Offer Placement Paper)')
                     ->schema([
                         TextEntry::make('opp_status')
                             ->label('Status OPP')
                             ->badge()
                             ->color(fn ($state) => match ($state) {
-                                'Belum' => 'gray',
                                 'Diterima' => 'success',
                                 default => 'gray',
                             }),
                         TextEntry::make('opp_receipt_date')
-                            ->label('Tanggal Penerimaan OPP')
+                            ->label('Tanggal Terima OPP')
                             ->date('d F Y')
-                            ->visible(fn ($record) => $record->opp_status === 'Diterima'),
+                            ->placeholder('Belum diisi'),
                         TextEntry::make('opp_document_path')
                             ->label('Dokumen OPP')
-                            ->visible(fn ($record) => $record->opp_status === 'Diterima')
-                            ->formatStateUsing(fn ($state) => $state ? 'Dokumen tersimpan' : 'Tidak ada dokumen'),
-                        TextEntry::make('departure_date')
-                            ->label('Tanggal Keberangkatan')
-                            ->date('d F Y')
-                            ->visible(fn ($record) => $record->opp_status === 'Diterima'),
-                        TextEntry::make('flight_number')
-                            ->label('Nomor Penerbangan')
-                            ->visible(fn ($record) => $record->opp_status === 'Diterima' && $record->flight_number),
+                            ->formatStateUsing(fn ($state) => $state ? basename($state) : 'Tidak ada dokumen'),
                     ])
                     ->columns(2)
                     ->collapsible()
-                    ->collapsed(fn ($record) => $record->opp_status === 'Belum'),
+                    ->persistCollapsed(),
 
+                // ==================== STAGE 15: TERBANG BERANGKAT ====================
+                Section::make('15. Terbang Berangkat')
+                    ->description(fn ($record) => $this->getStatusBadge($record, 15) ?? 'Tanggal keberangkatan CTK')
+                    ->schema([
+                        TextEntry::make('departure_date')
+                            ->label('Tanggal Keberangkatan')
+                            ->date('d F Y')
+                            ->placeholder('Belum diisi'),
+                        TextEntry::make('flight_number')
+                            ->label('Nomor Penerbangan')
+                            ->placeholder('Belum diisi'),
+                    ])
+                    ->columns(2)
+                    ->collapsible()
+                    ->persistCollapsed(),
+
+                // ==================== RIWAYAT AUDIT ====================
                 Section::make('Riwayat Audit')
                     ->description('Catatan aktivitas dan perubahan data CTK')
                     ->schema([
                         TextEntry::make('activity_summary')
                             ->label('Ringkasan Aktivitas')
-                            ->formatStateUsing(function ($record) {
-                                $activityCount = \Spatie\Activitylog\Models\Activity::forSubject($record)->count();
+                            ->state(fn ($record) => \Spatie\Activitylog\Models\Activity::forSubject($record)->count())
+                            ->formatStateUsing(function ($state) {
+                                $activityCount = $state;
 
                                 return "Total aktivitas tercatat: {$activityCount}";
                             }),
 
-                        TextEntry::make('activity_list')
+                        ViewEntry::make('activity_list')
                             ->label('Daftar Aktivitas Terbaru')
-                            ->formatStateUsing(function ($record) {
-                                $activities = \Spatie\Activitylog\Models\Activity::forSubject($record)
-                                    ->orderBy('created_at', 'desc')
-                                    ->take(10)
-                                    ->get();
-
-                                if ($activities->isEmpty()) {
-                                    return 'Tidak ada aktivitas tercatat';
-                                }
-
-                                return view('filament.infolists.activity-log', [
-                                    'activities' => $activities,
-                                ]);
-                            }),
+                            ->view('filament.infolists.activity-log', fn ($record): array => [
+                                'activities' => $record
+                                    ? \Spatie\Activitylog\Models\Activity::forSubject($record)->orderBy('created_at', 'desc')->take(10)->get()
+                                    : collect(),
+                            ]),
                     ])
                     ->collapsible()
                     ->collapsed(fn ($record) => \Spatie\Activitylog\Models\Activity::forSubject($record)->count() === 0),
 
+                // ==================== METADATA ====================
                 Section::make('Metadata')
                     ->schema([
                         TextEntry::make('creator.name')
@@ -390,5 +405,114 @@ class ViewCTK extends ViewRecord
                     ->columns(2)
                     ->collapsible(),
             ]);
+    }
+
+    private function getStatusBadge(?object $record, int $stage): ?string
+    {
+        if (! $record) {
+            return null;
+        }
+
+        $stageAttribute = "stage{$stage}_complete";
+        $isComplete = $record->{$stageAttribute} ?? false;
+        $icon = $isComplete ? '✅' : '⬜';
+        $status = $isComplete ? 'Selesai' : 'Belum Selesai';
+
+        return "{$icon} Stage {$stage}: {$status}";
+    }
+
+    private function collectAllDocuments(object $record): array
+    {
+        $documents = [];
+
+        foreach ($record->documents()->with('uploader')->orderBy('upload_timestamp')->get() as $document) {
+            $filename = $document->filename ?: basename((string) $document->file_path);
+
+            $documents[] = [
+                'title' => $document->document_type?->getLabel() ?? 'Dokumen CTK',
+                'source' => 'Dokumen Tahapan',
+                'filename' => $filename,
+                'path' => $document->file_path,
+                'disk' => 'public',
+                'uploaded_at' => $document->upload_timestamp?->format('d F Y'),
+                'uploader' => $document->uploader?->name,
+                'is_image' => $this->isImagePath($filename),
+            ];
+        }
+
+        foreach ($record->payments()->orderBy('stage_number')->get() as $payment) {
+            if (! $payment->payment_proof_path) {
+                continue;
+            }
+
+            $documents[] = [
+                'title' => 'Bukti Pembayaran Tahap '.$payment->stage_number,
+                'source' => 'Pembayaran',
+                'filename' => basename($payment->payment_proof_path),
+                'path' => $payment->payment_proof_path,
+                'disk' => 'public',
+                'uploaded_at' => $payment->payment_date?->format('d F Y'),
+                'uploader' => null,
+                'is_image' => $this->isImagePath($payment->payment_proof_path),
+            ];
+        }
+
+        foreach ($record->medicalFulls()->with('creator')->orderByDesc('examination_date')->get() as $medical) {
+            if (! $medical->medical_report_path) {
+                continue;
+            }
+
+            $documents[] = [
+                'title' => 'Medical Full Report',
+                'source' => 'Medical Full',
+                'filename' => basename($medical->medical_report_path),
+                'path' => $medical->medical_report_path,
+                'disk' => 'private',
+                'uploaded_at' => $medical->examination_date?->format('d F Y'),
+                'uploader' => $medical->creator?->name,
+                'is_image' => $this->isImagePath($medical->medical_report_path),
+            ];
+        }
+
+        foreach ($record->visaRecords()->orderByDesc('application_date')->get() as $visa) {
+            if (! $visa->visa_document_path) {
+                continue;
+            }
+
+            $documents[] = [
+                'title' => $visa->visa_number ? 'Visa '.$visa->visa_number : 'Dokumen Visa',
+                'source' => 'Visa',
+                'filename' => basename($visa->visa_document_path),
+                'path' => $visa->visa_document_path,
+                'disk' => 'private',
+                'uploaded_at' => $visa->issuance_date?->format('d F Y') ?? $visa->application_date?->format('d F Y'),
+                'uploader' => null,
+                'is_image' => $this->isImagePath($visa->visa_document_path),
+            ];
+        }
+
+        if ($record->opp_document_path) {
+            $documents[] = [
+                'title' => 'Dokumen OPP',
+                'source' => 'OPP',
+                'filename' => basename($record->opp_document_path),
+                'path' => $record->opp_document_path,
+                'disk' => 'private',
+                'uploaded_at' => $record->opp_receipt_date?->format('d F Y'),
+                'uploader' => null,
+                'is_image' => $this->isImagePath($record->opp_document_path),
+            ];
+        }
+
+        return $documents;
+    }
+
+    private function isImagePath(?string $path): bool
+    {
+        if (! $path) {
+            return false;
+        }
+
+        return in_array(strtolower(pathinfo($path, PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png', 'gif', 'webp'], true);
     }
 }

@@ -1,3 +1,7 @@
+@php
+    $activities = collect($activities ?? []);
+@endphp
+
 <div class="space-y-3">
     @forelse($activities as $activity)
         <div class="border-l-4 border-blue-500 bg-blue-50 p-3 rounded">
