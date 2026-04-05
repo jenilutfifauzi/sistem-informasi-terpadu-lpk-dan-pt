@@ -8,7 +8,7 @@ The Laravel Boost guidelines are specifically curated by Laravel maintainers for
 ## Foundational Context
 This application is a Laravel application and its main Laravel ecosystems package & versions are below. You are an expert with them all. Ensure you abide by these specific packages & versions.
 
-- php - 8.4.5
+- php - 8.4.19
 - filament/filament (FILAMENT) - v4
 - laravel/framework (LARAVEL) - v11
 - laravel/prompts (PROMPTS) - v0
@@ -106,6 +106,20 @@ protected function isAccessible(User $user, ?string $path = null): bool
 
 ## Enums
 - Typically, keys in an Enum should be TitleCase. For example: `FavoritePerson`, `BestLake`, `Monthly`.
+
+=== herd rules ===
+
+## Laravel Herd
+
+- The application is served by Laravel Herd and will be available at: `https?://[kebab-case-project-dir].test`. Use the `get-absolute-url` tool to generate URLs for the user to ensure valid URLs.
+- You must not run any commands to make the site available via HTTP(S). It is always available through Laravel Herd.
+
+=== tests rules ===
+
+## Test Enforcement
+
+- Every change must be programmatically tested. Write a new test or update an existing test, then run the affected tests to make sure they pass.
+- Run the minimum number of tests needed to ensure code quality and speed. Use `php artisan test --compact` with a specific filename or filter.
 
 === laravel/core rules ===
 
@@ -278,45 +292,6 @@ document.addEventListener('livewire:init', function () {
 - When the tests relating to your feature are passing, ask the user if they would like to also run the entire test suite to make sure everything is still passing.
 - Tests should test all of the happy paths, failure paths, and weird paths.
 - You must not remove any tests or test files from the tests directory without approval. These are not temporary or helper files; these are core to the application.
-
-### Test Database Strategy
-- **DO NOT use `RefreshDatabase` trait** - It resets the entire database for each test which is slow and can cause issues
-- **USE database transactions instead** - Wrap tests in transactions that rollback automatically after each test
-- This approach is faster and more reliable:
-  - Transactions rollback automatically (cleanup is guaranteed)
-  - Tests run in parallel without conflicts
-  - Database state is consistent across test runs
-  - No data pollution between tests
-
-<code-snippet name="Correct Test Setup with Transactions" lang="php">
-use Tests\TestCase;
-use Illuminate\Foundation\Testing\WithoutMiddleware;
-use Illuminate\Support\Facades\DB;
-
-class CTKTest extends TestCase
-{
-    protected function setUp(): void
-    {
-        parent::setUp();
-        // Start transaction that will rollback after each test
-        DB::beginTransaction();
-    }
-
-    protected function tearDown(): void
-    {
-        // Automatically rollback all database changes
-        DB::rollBack();
-        parent::tearDown();
-    }
-
-    /** @test */
-    public function test_something()
-    {
-        // Test code here
-        // All database changes will be rolled back
-    }
-}
-</code-snippet>
 
 ### Running Tests
 - Run the minimal number of tests, using an appropriate filter, before finalizing.
