@@ -122,6 +122,11 @@ class CTK extends Model
         return $this->hasMany(CTKNote::class, 'ctk_id');
     }
 
+    public function pembayaranPusat(): HasMany
+    {
+        return $this->hasMany(PembayaranPusat::class, 'ctk_id');
+    }
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
