@@ -6,10 +6,12 @@ namespace App\Providers;
 use App\Models\Asset;
 use App\Models\CTK;
 use App\Models\EmployeePT;
+use App\Models\PembayaranPusat;
 use App\Models\User;
 use App\Policies\AssetPolicy;
 use App\Policies\CTKPolicy;
 use App\Policies\EmployeePTPolicy;
+use App\Policies\PembayaranPusatPolicy;
 use App\Policies\UserPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
@@ -25,6 +27,7 @@ class AuthServiceProvider extends ServiceProvider
         CTK::class => CTKPolicy::class,
         Asset::class => AssetPolicy::class,
         EmployeePT::class => EmployeePTPolicy::class,
+        PembayaranPusat::class => PembayaranPusatPolicy::class,
     ];
 
     /**
