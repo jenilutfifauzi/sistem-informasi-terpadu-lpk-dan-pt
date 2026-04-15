@@ -11,6 +11,17 @@
                     $isPublic = $document['disk'] === 'public';
                     $url = $isPublic ? \Illuminate\Support\Facades\Storage::disk('public')->url($document['path']) : null;
                     $extension = strtoupper(pathinfo($document['filename'], PATHINFO_EXTENSION) ?: 'FILE');
+                    
+                    // Generate download URL for private files
+                    $privateUrl = null;
+                    if (!$isPublic && isset($document['private_type'], $document['private_id'])) {
+                        $privateUrl = match($document['private_type']) {
+                            'medical' => route('ctk.medical.download', $document['private_id']),
+                            'visa' => route('ctk.visa.download', $document['private_id']),
+                            'opp' => route('ctk.opp.download', $document['private_id']),
+                            default => null,
+                        };
+                    }
                 @endphp
 
                 <div style="display: flex; align-items: flex-start; gap: 12px; border: 1px solid rgba(156, 163, 175, 0.18); border-radius: 10px; padding: 10px; background: rgba(31, 41, 55, 0.35);">
@@ -29,6 +40,10 @@
                             <div style="min-width: 0; flex: 1 1 auto;">
                                 @if ($isPublic)
                                     <a href="{{ $url }}" target="_blank" rel="noopener noreferrer" style="display: block; font-size: 14px; font-weight: 600; color: #60a5fa; text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                        {{ $document['title'] }}
+                                    </a>
+                                @elseif ($privateUrl)
+                                    <a href="{{ $privateUrl }}" target="_blank" rel="noopener noreferrer" style="display: block; font-size: 14px; font-weight: 600; color: #fbbf24; text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                                         {{ $document['title'] }}
                                     </a>
                                 @else
@@ -56,6 +71,8 @@
                         <div style="margin-top: 6px;">
                             @if ($isPublic)
                                 <a href="{{ $url }}" target="_blank" rel="noopener noreferrer" style="font-size: 12px; font-weight: 600; color: #60a5fa; text-decoration: none;">Buka dokumen</a>
+                            @elseif ($privateUrl)
+                                <a href="{{ $privateUrl }}" target="_blank" rel="noopener noreferrer" style="font-size: 12px; font-weight: 600; color: #fbbf24; text-decoration: none;">Download dokumen</a>
                             @else
                                 <span style="font-size: 12px; color: #fbbf24;">File private tersimpan di server</span>
                             @endif
