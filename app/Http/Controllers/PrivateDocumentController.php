@@ -6,14 +6,14 @@ use App\Models\CTK;
 use App\Models\CTKMedicalFull;
 use App\Models\VisaRecord;
 use Illuminate\Support\Facades\Storage;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class PrivateDocumentController extends Controller
 {
     /**
-     * Download a Medical Full Report document.
+     * View a Medical Full Report document inline.
      */
-    public function downloadMedical(CTKMedicalFull $medical): StreamedResponse
+    public function downloadMedical(CTKMedicalFull $medical): BinaryFileResponse
     {
         $this->authorize('view_ctk');
 
@@ -21,16 +21,13 @@ class PrivateDocumentController extends Controller
             abort(404, 'File not found');
         }
 
-        return Storage::disk('private')->download(
-            $medical->medical_report_path,
-            basename($medical->medical_report_path)
-        );
+        return $this->previewPrivateFile($medical->medical_report_path);
     }
 
     /**
-     * Download a Visa document.
+     * View a Visa document inline.
      */
-    public function downloadVisa(VisaRecord $visa): StreamedResponse
+    public function downloadVisa(VisaRecord $visa): BinaryFileResponse
     {
         $this->authorize('view_ctk');
 
@@ -38,16 +35,13 @@ class PrivateDocumentController extends Controller
             abort(404, 'File not found');
         }
 
-        return Storage::disk('private')->download(
-            $visa->visa_document_path,
-            basename($visa->visa_document_path)
-        );
+        return $this->previewPrivateFile($visa->visa_document_path);
     }
 
     /**
-     * Download an OPP document from CTK.
+     * View an OPP document from CTK inline.
      */
-    public function downloadOpp(CTK $ctk): StreamedResponse
+    public function downloadOpp(CTK $ctk): BinaryFileResponse
     {
         $this->authorize('view_ctk');
 
@@ -55,9 +49,19 @@ class PrivateDocumentController extends Controller
             abort(404, 'File not found');
         }
 
-        return Storage::disk('private')->download(
-            $ctk->opp_document_path,
-            basename($ctk->opp_document_path)
-        );
+        return $this->previewPrivateFile($ctk->opp_document_path);
+    }
+
+    private function previewPrivateFile(string $path): BinaryFileResponse
+    {
+        $disk = Storage::disk('private');
+        $absolutePath = $disk->path($path);
+        $filename = basename($path);
+        $mimeType = $disk->mimeType($path) ?: 'application/octet-stream';
+
+        return response()->file($absolutePath, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="'.$filename.'"',
+        ]);
     }
 }
