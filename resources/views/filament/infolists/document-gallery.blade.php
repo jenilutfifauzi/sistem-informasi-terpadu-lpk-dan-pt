@@ -36,6 +36,9 @@
                             <span>Upload: {{ $date }}</span>
                             <span>Oleh: {{ $uploader }}</span>
                         </div>
+                        <div style="margin-top: 6px;">
+                            <a href="{{ $url }}" target="_blank" rel="noopener noreferrer" style="font-size: 12px; font-weight: 600; color: #60a5fa; text-decoration: none;">Lihat dokumen</a>
+                        </div>
                     </div>
                 </div>
             @endforeach

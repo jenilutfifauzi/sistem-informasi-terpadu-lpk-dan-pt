@@ -25,6 +25,12 @@
                         <span>Laporan: {{ basename($medical->medical_report_path) }}</span>
                     @endif
                 </div>
+
+                @if($medical->medical_report_path && $medical->status === 'Selesai')
+                    <div style="margin-top: 6px;">
+                        <a href="{{ route('ctk.medical.download', $medical) }}" target="_blank" rel="noopener noreferrer" style="font-size: 12px; font-weight: 600; color: #fbbf24; text-decoration: none;">Lihat dokumen</a>
+                    </div>
+                @endif
             </div>
         </div>
     @endforeach

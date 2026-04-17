@@ -12,7 +12,7 @@
                     $url = $isPublic ? \Illuminate\Support\Facades\Storage::disk('public')->url($document['path']) : null;
                     $extension = strtoupper(pathinfo($document['filename'], PATHINFO_EXTENSION) ?: 'FILE');
                     
-                    // Generate download URL for private files
+                    // Generate preview URL for private files
                     $privateUrl = null;
                     if (!$isPublic && isset($document['private_type'], $document['private_id'])) {
                         $privateUrl = match($document['private_type']) {
@@ -72,7 +72,7 @@
                             @if ($isPublic)
                                 <a href="{{ $url }}" target="_blank" rel="noopener noreferrer" style="font-size: 12px; font-weight: 600; color: #60a5fa; text-decoration: none;">Buka dokumen</a>
                             @elseif ($privateUrl)
-                                <a href="{{ $privateUrl }}" target="_blank" rel="noopener noreferrer" style="font-size: 12px; font-weight: 600; color: #fbbf24; text-decoration: none;">Download dokumen</a>
+                                <a href="{{ $privateUrl }}" target="_blank" rel="noopener noreferrer" style="font-size: 12px; font-weight: 600; color: #fbbf24; text-decoration: none;">Lihat dokumen</a>
                             @else
                                 <span style="font-size: 12px; color: #fbbf24;">File private tersimpan di server</span>
                             @endif

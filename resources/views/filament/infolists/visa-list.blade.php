@@ -41,6 +41,12 @@
                         @endif
                     @endif
                 </div>
+
+                @if($visa->visa_document_path)
+                    <div style="margin-top: 6px;">
+                        <a href="{{ route('ctk.visa.download', $visa) }}" target="_blank" rel="noopener noreferrer" style="font-size: 12px; font-weight: 600; color: #fbbf24; text-decoration: none;">Lihat dokumen</a>
+                    </div>
+                @endif
             </div>
         </div>
     @endforeach

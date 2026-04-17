@@ -342,7 +342,9 @@ class ViewCTK extends ViewRecord
                             ->placeholder('Belum diisi'),
                         TextEntry::make('opp_document_path')
                             ->label('Dokumen OPP')
-                            ->formatStateUsing(fn ($state) => $state ? basename($state) : 'Tidak ada dokumen'),
+                            ->formatStateUsing(fn ($state) => $state ? basename($state) : 'Tidak ada dokumen')
+                            ->url(fn ($record) => $record?->opp_document_path ? route('ctk.opp.download', $record) : null)
+                            ->openUrlInNewTab(),
                     ])
                     ->columns(2)
                     ->collapsible()
