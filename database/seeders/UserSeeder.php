@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\EntityType;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -13,94 +14,88 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create Super Admin
-        $superAdmin = User::firstOrCreate(
-            ['email' => 'superadmin@lpk.com'],
-            [
-                'name' => 'Super Admin',
-                'password' => Hash::make('password'),
-            ]
+        $this->createOrUpdateUser(
+            name: 'Super Admin',
+            email: 'superadmin@lpk.com',
+            entity: EntityType::PT,
+            roles: ['super_admin']
         );
-        $superAdmin->assignRole('super_admin');
 
-        // Create Admin LPK
-        $adminLPK = User::firstOrCreate(
-            ['email' => 'admin@lpk.com'],
-            [
-                'name' => 'Admin LPK',
-                'password' => Hash::make('password'),
-            ]
+        $this->createOrUpdateUser(
+            name: 'Admin LPK',
+            email: 'admin@lpk.com',
+            entity: EntityType::LPK,
+            roles: ['admin_lpk', 'Admin LPK']
         );
-        $adminLPK->assignRole('admin_lpk');
 
-        // Create Instruktur
-        $instruktur = User::firstOrCreate(
-            ['email' => 'instruktur@lpk.com'],
-            [
-                'name' => 'Instruktur',
-                'password' => Hash::make('password'),
-            ]
+        $this->createOrUpdateUser(
+            name: 'Instruktur',
+            email: 'instruktur@lpk.com',
+            entity: EntityType::LPK,
+            roles: ['instruktur', 'Instruktur']
         );
-        $instruktur->assignRole('instruktur');
 
-        // Create HR PT
-        $hrPT = User::firstOrCreate(
-            ['email' => 'hr@pt.com'],
-            [
-                'name' => 'HR PT',
-                'password' => Hash::make('password'),
-            ]
+        $this->createOrUpdateUser(
+            name: 'HR PT',
+            email: 'hr@pt.com',
+            entity: EntityType::PT,
+            roles: ['hr_pt', 'HR PT']
         );
-        $hrPT->assignRole('hr_pt');
 
-        // Create Admin PT
-        $adminPT = User::firstOrCreate(
-            ['email' => 'admin@pt.com'],
-            [
-                'name' => 'Admin PT',
-                'password' => Hash::make('password'),
-            ]
+        $this->createOrUpdateUser(
+            name: 'Admin PT',
+            email: 'admin@pt.com',
+            entity: EntityType::PT,
+            roles: ['admin_pt', 'Admin PT']
         );
-        $adminPT->assignRole('admin_pt');
 
-        // Create Legal PT
-        $legalPT = User::firstOrCreate(
-            ['email' => 'legal@pt.com'],
-            [
-                'name' => 'Legal PT',
-                'password' => Hash::make('password'),
-            ]
+        $this->createOrUpdateUser(
+            name: 'Legal PT',
+            email: 'legal@pt.com',
+            entity: EntityType::PT,
+            roles: ['legal_pt', 'Legal PT']
         );
-        $legalPT->assignRole('legal_pt');
 
-        // Create Keuangan PT
-        $keuanganPT = User::firstOrCreate(
-            ['email' => 'keuangan@pt.com'],
-            [
-                'name' => 'Keuangan PT',
-                'password' => Hash::make('password'),
-            ]
+        $this->createOrUpdateUser(
+            name: 'Keuangan PT',
+            email: 'keuangan@pt.com',
+            entity: EntityType::PT,
+            roles: ['keuangan_pt', 'Keuangan PT']
         );
-        $keuanganPT->assignRole('keuangan_pt');
 
-        // Create Keuangan LPK
-        $keuanganLPK = User::firstOrCreate(
-            ['email' => 'keuangan@lpk.com'],
-            [
-                'name' => 'Keuangan LPK',
-                'password' => Hash::make('password'),
-            ]
+        $this->createOrUpdateUser(
+            name: 'Keuangan LPK',
+            email: 'keuangan@lpk.com',
+            entity: EntityType::LPK,
+            roles: ['keuangan_lpk', 'Keuangan LPK']
         );
-        $keuanganLPK->assignRole('keuangan_lpk');
 
-        // Create Pimpinan
-        $pimpinan = User::firstOrCreate(
-            ['email' => 'pimpinan@lpk.com'],
+        $this->createOrUpdateUser(
+            name: 'Pimpinan',
+            email: 'pimpinan@lpk.com',
+            entity: EntityType::PT,
+            roles: ['pimpinan', 'Pimpinan']
+        );
+    }
+
+    /**
+     * @param  array<int, string>  $roles
+     */
+    private function createOrUpdateUser(string $name, string $email, EntityType $entity, array $roles): void
+    {
+        $user = User::updateOrCreate(
+            ['email' => $email],
             [
-                'name' => 'Pimpinan',
+                'name' => $name,
                 'password' => Hash::make('password'),
+                'entity' => $entity,
             ]
         );
-        $pimpinan->assignRole('pimpinan');
+
+        $availableRoles = array_values(array_filter($roles, fn (string $role): bool => $user->getRoleNames()->contains($role) || \Spatie\Permission\Models\Role::where('name', $role)->exists()));
+
+        if ($availableRoles !== []) {
+            $user->syncRoles($availableRoles);
+        }
     }
 }

@@ -33,10 +33,7 @@ class AssetFactory extends Factory
             'deskripsi' => fake()->optional(0.6)->sentence(),
             'jumlah' => fake()->numberBetween(1, 10),
             'satuan' => $this->getSatuan($kategori),
-            'kondisi' => fake()->randomElement([
-                AssetCondition::Baik->value => 0.8,  // 80% good condition
-                AssetCondition::Rusak->value => 0.2, // 20% damaged
-            ]),
+            'kondisi' => fake()->boolean(80) ? AssetCondition::Baik : AssetCondition::Rusak,
             'status_assignment' => AssetAssignmentStatus::Available,
             'tahun_pembelian' => $tahun,
             'nilai_pembelian' => fake()->numberBetween(1000000, 50000000), // 1M - 50M IDR

@@ -1,0 +1,262 @@
+openapi: 3.1.0
+info:
+  title: Siswa LPK Admin Contract
+  version: 1.0.0
+  description: |
+    Interaction contract for the admin-managed Siswa LPK resource defined by the Data Siswa LPK Administration spec.
+    This contract expresses the expected CRUD behavior for planning and task generation, even though the UI is implemented through Filament.
+servers:
+  - url: /admin
+paths:
+  /siswa-lpk:
+    get:
+      summary: List Siswa LPK records
+      operationId: listSiswaLpk
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: Search by nomor_induk, nama_siswa, or program_pendidikan.
+        - in: query
+          name: program_pendidikan
+          schema:
+            type: string
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Paginated list of student records.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SiswaLpkCollection'
+    post:
+      summary: Create a Siswa LPK record
+      operationId: createSiswaLpk
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SiswaLpkCreateRequest'
+      responses:
+        '201':
+          description: Student record created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SiswaLpk'
+        '422':
+          description: Validation error.
+  /siswa-lpk/export:
+    get:
+      summary: Export Siswa LPK records in Excel format
+      operationId: exportSiswaLpk
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: Optional search term applied before export.
+        - in: query
+          name: program_pendidikan
+          schema:
+            type: string
+          description: Optional program filter applied before export.
+        - in: query
+          name: format
+          schema:
+            type: string
+            enum: [xlsx]
+          description: Requested Excel export format.
+      responses:
+        '200':
+          description: Export file response.
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+  /siswa-lpk/{id}:
+    get:
+      summary: View one Siswa LPK record
+      operationId: showSiswaLpk
+      parameters:
+        - $ref: '#/components/parameters/RecordId'
+      responses:
+        '200':
+          description: Student record detail.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SiswaLpk'
+        '404':
+          description: Record not found.
+    patch:
+      summary: Update a Siswa LPK record
+      operationId: updateSiswaLpk
+      parameters:
+        - $ref: '#/components/parameters/RecordId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SiswaLpkUpdateRequest'
+      responses:
+        '200':
+          description: Student record updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SiswaLpk'
+        '404':
+          description: Record not found.
+        '422':
+          description: Validation error.
+components:
+  parameters:
+    RecordId:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+  schemas:
+    SiswaLpk:
+      type: object
+      required:
+        - id
+        - nomor_induk
+        - nama_siswa
+        - jenis_kelamin
+        - tanggal_masuk
+        - tempat_lahir
+        - tanggal_lahir
+        - alamat
+        - no_hp
+        - program_pendidikan
+      properties:
+        id:
+          type: integer
+        nomor_urut:
+          type: integer
+          nullable: true
+        nomor_induk:
+          type: string
+        nama_siswa:
+          type: string
+        jenis_kelamin:
+          type: string
+          enum: [L, P]
+        agama:
+          type: string
+          nullable: true
+        pendidikan_terakhir:
+          type: string
+          nullable: true
+        tanggal_masuk:
+          type: string
+          format: date
+        tempat_lahir:
+          type: string
+        tanggal_lahir:
+          type: string
+          format: date
+        alamat:
+          type: string
+        no_hp:
+          type: string
+        email:
+          type: string
+          format: email
+          nullable: true
+        program_pendidikan:
+          type: string
+        created_by:
+          type: integer
+          nullable: true
+        updated_by:
+          type: integer
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+    SiswaLpkCreateRequest:
+      type: object
+      required:
+        - nomor_induk
+        - nama_siswa
+        - jenis_kelamin
+        - tanggal_masuk
+        - tempat_lahir
+        - tanggal_lahir
+        - alamat
+        - no_hp
+        - program_pendidikan
+      properties:
+        nomor_urut:
+          type: integer
+          minimum: 0
+        nomor_induk:
+          type: string
+        nama_siswa:
+          type: string
+        jenis_kelamin:
+          type: string
+          enum: [L, P]
+        agama:
+          type: string
+        pendidikan_terakhir:
+          type: string
+        tanggal_masuk:
+          type: string
+          format: date
+        tempat_lahir:
+          type: string
+        tanggal_lahir:
+          type: string
+          format: date
+        alamat:
+          type: string
+        no_hp:
+          type: string
+        email:
+          type: string
+          format: email
+        program_pendidikan:
+          type: string
+    SiswaLpkUpdateRequest:
+      allOf:
+        - $ref: '#/components/schemas/SiswaLpkCreateRequest'
+      description: Same validation shape as create, with uniqueness rules applied against the current record.
+    SiswaLpkCollection:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SiswaLpk'
+        meta:
+          type: object
+          properties:
+            current_page:
+              type: integer
+            per_page:
+              type: integer
+            total:
+              type: integer
