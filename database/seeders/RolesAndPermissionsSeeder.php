@@ -36,7 +36,7 @@ class RolesAndPermissionsSeeder extends Seeder
         // Create super_admin role with all permissions
         $this->createSuperAdminRole();
 
-        // Create 8 application roles
+        // Create 8 application roles with legacy aliases used throughout the app
         $this->createAdminLPKRole();
         $this->createInstrukturRole();
         $this->createHRPTRole();
@@ -80,8 +80,7 @@ class RolesAndPermissionsSeeder extends Seeder
      */
     private function createAdminLPKRole(): void
     {
-        $role = Role::firstOrCreate(['name' => 'admin_lpk', 'guard_name' => 'web']);
-        $role->syncPermissions(['view_user', 'view_any_user']);
+        $this->createRolesWithAliases(['admin_lpk', 'Admin LPK'], ['view_user', 'view_any_user']);
     }
 
     /**
@@ -89,8 +88,7 @@ class RolesAndPermissionsSeeder extends Seeder
      */
     private function createInstrukturRole(): void
     {
-        $role = Role::firstOrCreate(['name' => 'instruktur', 'guard_name' => 'web']);
-        $role->syncPermissions(['view_user']);
+        $this->createRolesWithAliases(['instruktur', 'Instruktur'], ['view_user']);
     }
 
     /**
@@ -98,8 +96,7 @@ class RolesAndPermissionsSeeder extends Seeder
      */
     private function createHRPTRole(): void
     {
-        $role = Role::firstOrCreate(['name' => 'hr_pt', 'guard_name' => 'web']);
-        $role->syncPermissions(['view_user', 'view_any_user', 'create_user', 'update_user']);
+        $this->createRolesWithAliases(['hr_pt', 'HR PT'], ['view_user', 'view_any_user', 'create_user', 'update_user']);
     }
 
     /**
@@ -107,8 +104,7 @@ class RolesAndPermissionsSeeder extends Seeder
      */
     private function createAdminPTRole(): void
     {
-        $role = Role::firstOrCreate(['name' => 'admin_pt', 'guard_name' => 'web']);
-        $role->syncPermissions(['view_user', 'view_any_user']);
+        $this->createRolesWithAliases(['admin_pt', 'Admin PT'], ['view_user', 'view_any_user']);
     }
 
     /**
@@ -116,8 +112,7 @@ class RolesAndPermissionsSeeder extends Seeder
      */
     private function createLegalPTRole(): void
     {
-        $role = Role::firstOrCreate(['name' => 'legal_pt', 'guard_name' => 'web']);
-        $role->syncPermissions(['view_user']);
+        $this->createRolesWithAliases(['legal_pt', 'Legal PT'], ['view_user']);
     }
 
     /**
@@ -125,8 +120,7 @@ class RolesAndPermissionsSeeder extends Seeder
      */
     private function createKeuanganPTRole(): void
     {
-        $role = Role::firstOrCreate(['name' => 'keuangan_pt', 'guard_name' => 'web']);
-        $role->syncPermissions(['view_user']);
+        $this->createRolesWithAliases(['keuangan_pt', 'Keuangan PT'], ['view_user']);
     }
 
     /**
@@ -134,8 +128,7 @@ class RolesAndPermissionsSeeder extends Seeder
      */
     private function createKeuanganLPKRole(): void
     {
-        $role = Role::firstOrCreate(['name' => 'keuangan_lpk', 'guard_name' => 'web']);
-        $role->syncPermissions(['view_user']);
+        $this->createRolesWithAliases(['keuangan_lpk', 'Keuangan LPK'], ['view_user']);
     }
 
     /**
@@ -143,7 +136,20 @@ class RolesAndPermissionsSeeder extends Seeder
      */
     private function createPimpinanRole(): void
     {
-        $role = Role::firstOrCreate(['name' => 'pimpinan', 'guard_name' => 'web']);
-        $role->syncPermissions(['view_user', 'view_any_user', 'view_role', 'view_any_role']);
+        $this->createRolesWithAliases(['pimpinan', 'Pimpinan'], ['view_user', 'view_any_user', 'view_role', 'view_any_role']);
+    }
+
+    /**
+     * Create one or more role aliases and sync the same permissions to each alias.
+     *
+     * @param  array<int, string>  $roleNames
+     * @param  array<int, string>  $permissions
+     */
+    private function createRolesWithAliases(array $roleNames, array $permissions): void
+    {
+        foreach ($roleNames as $roleName) {
+            $role = Role::firstOrCreate(['name' => $roleName, 'guard_name' => 'web']);
+            $role->syncPermissions($permissions);
+        }
     }
 }

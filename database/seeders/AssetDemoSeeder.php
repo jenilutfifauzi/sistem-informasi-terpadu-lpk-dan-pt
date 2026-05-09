@@ -17,13 +17,13 @@ class AssetDemoSeeder extends Seeder
         // Get or create admin users for LPK and PT
         $adminLPK = User::where('entity', EntityType::LPK)
             ->whereHas('roles', function ($query) {
-                $query->where('name', 'Admin LPK');
+                $query->whereIn('name', ['Admin LPK', 'admin_lpk']);
             })
             ->first();
 
         $adminPT = User::where('entity', EntityType::PT)
             ->whereHas('roles', function ($query) {
-                $query->where('name', 'Admin PT');
+                $query->whereIn('name', ['Admin PT', 'admin_pt']);
             })
             ->first();
 

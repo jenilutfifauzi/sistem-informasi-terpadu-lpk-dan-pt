@@ -120,6 +120,7 @@ protected function isAccessible(User $user, ?string $path = null): bool
 
 - Every change must be programmatically tested. Write a new test or update an existing test, then run the affected tests to make sure they pass.
 - Run the minimum number of tests needed to ensure code quality and speed. Use `php artisan test --compact` with a specific filename or filter.
+- Do not use `RefreshDatabase` for tests in this repository. Prefer `DatabaseTransactions` so tests always run inside transactions against the existing test database state.
 
 === laravel/core rules ===
 
@@ -298,6 +299,7 @@ document.addEventListener('livewire:init', function () {
 - To run all tests: `php artisan test --compact`.
 - To run all tests in a file: `php artisan test --compact tests/Feature/ExampleTest.php`.
 - To filter on a particular test name: `php artisan test --compact --filter=testName` (recommended after making a change to a related file).
+- For new or updated database-backed tests, default to the `DatabaseTransactions` trait instead of `RefreshDatabase`.
 
 === filament/filament rules ===
 
