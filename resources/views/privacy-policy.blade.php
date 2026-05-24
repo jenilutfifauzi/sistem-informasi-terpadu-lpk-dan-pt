@@ -9,61 +9,7 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        border: "hsl(var(--border))",
-                        input: "hsl(var(--input))",
-                        ring: "hsl(var(--ring))",
-                        background: "hsl(var(--background))",
-                        foreground: "hsl(var(--foreground))",
-                        primary: {
-                            DEFAULT: "hsl(var(--primary))",
-                            foreground: "hsl(var(--primary-foreground))",
-                        },
-                        muted: {
-                            DEFAULT: "hsl(var(--muted))",
-                            foreground: "hsl(var(--muted-foreground))",
-                        },
-                        card: {
-                            DEFAULT: "hsl(var(--card))",
-                            foreground: "hsl(var(--card-foreground))",
-                        },
-                    },
-                    borderRadius: {
-                        lg: "var(--radius)",
-                        md: "calc(var(--radius) - 2px)",
-                        sm: "calc(var(--radius) - 4px)",
-                    },
-                },
-            },
-        }
-    </script>
-    <style type="text/tailwindcss">
-        @layer base {
-            :root {
-                --background: 0 0% 100%;
-                --foreground: 222.2 84% 4.9%;
-                --card: 0 0% 100%;
-                --card-foreground: 222.2 84% 4.9%;
-                --primary: 221.2 83.2% 53.3%;
-                --primary-foreground: 210 40% 98%;
-                --muted: 210 40% 96.1%;
-                --muted-foreground: 215.4 16.3% 46.9%;
-                --border: 214.3 31.8% 91.4%;
-                --input: 214.3 31.8% 91.4%;
-                --ring: 221.2 83.2% 53.3%;
-                --radius: 0.75rem;
-            }
-        }
-    </style>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="font-sans antialiased text-foreground bg-background selection:bg-primary/10 selection:text-primary">
     <nav class="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur">

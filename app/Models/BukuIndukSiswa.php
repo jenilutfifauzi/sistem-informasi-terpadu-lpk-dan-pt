@@ -41,6 +41,9 @@ class BukuIndukSiswa extends Model
         'kelainan_jasmani',
         'tinggi_badan_cm',
         'berat_badan_kg',
+    ];
+
+    protected $guarded = [
         'created_by',
         'updated_by',
     ];

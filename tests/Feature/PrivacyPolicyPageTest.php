@@ -22,4 +22,19 @@ class PrivacyPolicyPageTest extends TestCase
             ->assertSee(route('privacy-policy', absolute: false), false)
             ->assertSee('Privacy Policy');
     }
+
+    public function test_public_pages_use_vite_assets_instead_of_tailwind_cdn(): void
+    {
+        foreach ([
+            resource_path('views/welcome.blade.php'),
+            resource_path('views/privacy-policy.blade.php'),
+        ] as $viewPath) {
+            $contents = file_get_contents($viewPath);
+
+            $this->assertStringContainsString("@vite(['resources/css/app.css', 'resources/js/app.js'])", $contents);
+            $this->assertStringNotContainsString('cdn.tailwindcss.com', $contents);
+            $this->assertStringNotContainsString('type="text/tailwindcss"', $contents);
+            $this->assertStringNotContainsString('tailwind.config', $contents);
+        }
+    }
 }

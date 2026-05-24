@@ -97,6 +97,14 @@ class BukuIndukSiswaResourceTest extends TestCase
         ]);
     }
 
+    public function test_audit_fields_are_not_mass_assignable(): void
+    {
+        $model = new BukuIndukSiswa();
+
+        $this->assertNotContains('created_by', $model->getFillable());
+        $this->assertNotContains('updated_by', $model->getFillable());
+    }
+
     public function test_admin_can_upload_foto_when_creating_buku_induk_siswa(): void
     {
         Storage::fake('public');
