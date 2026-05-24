@@ -64,10 +64,13 @@ class BukuIndukSiswaResource extends Resource
                     ->schema([
                         Forms\Components\FileUpload::make('foto_path')
                             ->label('Foto Siswa')
-                            ->image()
-                            ->imageEditor()
+                            ->disk('public')
                             ->directory('buku-induk-siswa/foto')
                             ->visibility('public')
+                            ->image()
+                            ->imageEditor()
+                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                            ->maxSize(2048)
                             ->columnSpan(2),
                         Forms\Components\TextInput::make('nama_lengkap')
                             ->label('Nama Lengkap')

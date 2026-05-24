@@ -8,6 +8,8 @@ use App\Filament\Resources\BukuIndukSiswaResource\Pages\ViewBukuIndukSiswa;
 use App\Models\BukuIndukSiswa;
 use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -93,6 +95,30 @@ class BukuIndukSiswaResourceTest extends TestCase
             'tinggi_badan_cm' => 160,
             'created_by' => $this->admin->id,
         ]);
+    }
+
+    public function test_admin_can_upload_foto_when_creating_buku_induk_siswa(): void
+    {
+        Storage::fake('public');
+
+        Livewire::actingAs($this->admin)
+            ->test(CreateBukuIndukSiswa::class)
+            ->fillForm([
+                'foto_path' => UploadedFile::fake()->create('foto-siswa.png', 444, 'image/png'),
+                'nama_lengkap' => 'Upload Foto Siswa',
+                'nomor_induk' => 'BI-UPLOAD-01',
+                'program_pendidikan' => 'LPK Bahasa Jepang',
+                'program_bahasa' => 'Bahasa Jepang',
+                'jenis_kelamin' => 'Perempuan',
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $record = BukuIndukSiswa::where('nomor_induk', 'BI-UPLOAD-01')->firstOrFail();
+
+        $this->assertNotNull($record->foto_path);
+        $this->assertStringStartsWith('buku-induk-siswa/foto/', $record->foto_path);
+        Storage::disk('public')->assertExists($record->foto_path);
     }
 
     public function test_required_fields_are_validated_when_creating_record(): void
