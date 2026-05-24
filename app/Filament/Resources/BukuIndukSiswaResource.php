@@ -214,6 +214,7 @@ class BukuIndukSiswaResource extends Resource
             ->columns([
                 Tables\Columns\ImageColumn::make('foto_path')
                     ->label('Foto')
+                    ->disk('public')
                     ->circular()
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('nomor_induk')
@@ -307,7 +308,10 @@ class BukuIndukSiswaResource extends Resource
             ->schema([
                 Schemas\Components\Section::make('Identitas Buku Induk')
                     ->schema([
-                        Infolists\Components\ImageEntry::make('foto_path')->label('Foto')->circular(),
+                        Infolists\Components\ImageEntry::make('foto_path')
+                            ->label('Foto')
+                            ->disk('public')
+                            ->circular(),
                         Infolists\Components\TextEntry::make('nama_lengkap')->label('Nama Lengkap'),
                         Infolists\Components\TextEntry::make('nomor_induk')->label('Nomor Induk'),
                         Infolists\Components\TextEntry::make('program_pendidikan')->label('Program Pendidikan'),
