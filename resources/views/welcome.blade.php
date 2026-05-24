@@ -349,7 +349,7 @@
                 &copy; {{ date('Y') }} SIT LPK. All rights reserved.
             </p>
             <div class="flex gap-6">
-                <a href="#" class="text-sm text-muted-foreground hover:text-foreground">Privacy Policy</a>
+                <a href="{{ route('privacy-policy') }}" class="text-sm text-muted-foreground hover:text-foreground">Privacy Policy</a>
                 <a href="#" class="text-sm text-muted-foreground hover:text-foreground">Terms of Service</a>
             </div>
         </div>

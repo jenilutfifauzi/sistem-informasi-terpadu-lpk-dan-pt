@@ -21,6 +21,8 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::view('/privacy-policy', 'privacy-policy')->name('privacy-policy');
+
 // Employee Sertifikat download route
 Route::get('/karyawan-lpk/{employee}/sertifikat/download', [EmployeeSertifikatController::class, 'download'])
     ->name('karyawan-lpk.sertifikat.download')
