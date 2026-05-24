@@ -27,6 +27,13 @@ class RolesAndPermissionsSeeder extends Seeder
             'create_role',
             'update_role',
             'delete_role',
+            'view_buku_induk_siswa',
+            'view_any_buku_induk_siswa',
+            'create_buku_induk_siswa',
+            'update_buku_induk_siswa',
+            'delete_buku_induk_siswa',
+            'restore_buku_induk_siswa',
+            'force_delete_buku_induk_siswa',
         ];
 
         foreach ($permissions as $permission) {
@@ -80,7 +87,16 @@ class RolesAndPermissionsSeeder extends Seeder
      */
     private function createAdminLPKRole(): void
     {
-        $this->createRolesWithAliases(['admin_lpk', 'Admin LPK'], ['view_user', 'view_any_user']);
+        $this->createRolesWithAliases(['admin_lpk', 'Admin LPK'], [
+            'view_user',
+            'view_any_user',
+            'view_buku_induk_siswa',
+            'view_any_buku_induk_siswa',
+            'create_buku_induk_siswa',
+            'update_buku_induk_siswa',
+            'delete_buku_induk_siswa',
+            'restore_buku_induk_siswa',
+        ]);
     }
 
     /**
@@ -136,7 +152,14 @@ class RolesAndPermissionsSeeder extends Seeder
      */
     private function createPimpinanRole(): void
     {
-        $this->createRolesWithAliases(['pimpinan', 'Pimpinan'], ['view_user', 'view_any_user', 'view_role', 'view_any_role']);
+        $this->createRolesWithAliases(['pimpinan', 'Pimpinan'], [
+            'view_user',
+            'view_any_user',
+            'view_role',
+            'view_any_role',
+            'view_buku_induk_siswa',
+            'view_any_buku_induk_siswa',
+        ]);
     }
 
     /**
