@@ -129,6 +129,29 @@ class BukuIndukSiswaResourceTest extends TestCase
         Storage::disk('public')->assertExists($record->foto_path);
     }
 
+    public function test_foto_display_uses_public_disk_on_index_and_detail_pages(): void
+    {
+        $record = BukuIndukSiswa::factory()->create([
+            'foto_path' => 'buku-induk-siswa/foto/foto-siswa.jpg',
+        ]);
+
+        $listPage = Livewire::actingAs($this->admin)
+            ->test(ListBukuIndukSiswas::class)
+            ->assertSuccessful();
+
+        $fotoColumn = $listPage->instance()->getTable()->getColumn('foto_path');
+
+        $this->assertSame('public', $fotoColumn->getDiskName());
+
+        $detailPage = Livewire::actingAs($this->admin)
+            ->test(ViewBukuIndukSiswa::class, ['record' => $record->getKey()])
+            ->assertSuccessful();
+
+        $fotoEntry = $detailPage->instance()->getSchema('infolist')->getComponent('foto_path');
+
+        $this->assertSame('public', $fotoEntry->getDiskName());
+    }
+
     public function test_required_fields_are_validated_when_creating_record(): void
     {
         Livewire::actingAs($this->admin)
