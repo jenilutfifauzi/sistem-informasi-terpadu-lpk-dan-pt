@@ -1,0 +1,193 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Filament\Resources\BukuIndukSiswaResource\Pages\CreateBukuIndukSiswa;
+use App\Filament\Resources\BukuIndukSiswaResource\Pages\ListBukuIndukSiswas;
+use App\Filament\Resources\BukuIndukSiswaResource\Pages\ViewBukuIndukSiswa;
+use App\Models\BukuIndukSiswa;
+use App\Models\User;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Livewire\Livewire;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Tests\TestCase;
+
+class BukuIndukSiswaResourceTest extends TestCase
+{
+    use DatabaseTransactions;
+
+    protected User $admin;
+
+    protected User $viewer;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
+        Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'web']);
+        Role::firstOrCreate(['name' => 'Pimpinan', 'guard_name' => 'web']);
+
+        $permissions = [
+            'view_any_buku_induk_siswa',
+            'view_buku_induk_siswa',
+            'create_buku_induk_siswa',
+            'update_buku_induk_siswa',
+            'delete_buku_induk_siswa',
+            'restore_buku_induk_siswa',
+            'force_delete_buku_induk_siswa',
+        ];
+
+        foreach ($permissions as $permission) {
+            Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
+        }
+
+        $this->admin = User::factory()->create();
+        $this->admin->syncRoles('super_admin');
+        $this->admin->givePermissionTo($permissions);
+
+        $this->viewer = User::factory()->create();
+        $this->viewer->syncRoles('Pimpinan');
+        $this->viewer->givePermissionTo(['view_any_buku_induk_siswa', 'view_buku_induk_siswa']);
+    }
+
+    public function test_admin_can_create_buku_induk_siswa_with_all_form_sections(): void
+    {
+        Livewire::actingAs($this->admin)
+            ->test(CreateBukuIndukSiswa::class)
+            ->fillForm([
+                'nama_lengkap' => 'Kanthi Pramono',
+                'nomor_induk' => 'BI-00001',
+                'program_pendidikan' => 'LPK Bahasa Jepang',
+                'program_bahasa' => 'Bahasa Jepang',
+                'nama_panggilan' => 'Kanthi',
+                'jenis_kelamin' => 'Perempuan',
+                'tempat_lahir' => 'Cilacap',
+                'tanggal_lahir' => '1998-08-15',
+                'agama' => 'Islam',
+                'kewarganegaraan' => 'Indonesia',
+                'status_perkawinan' => 'Belum Kawin',
+                'nama_suami_istri' => null,
+                'no_hp_suami_istri' => null,
+                'alamat_siswa' => 'Desa Ujungmanik RT.003/RW.003, Kec. Kawunganten, Kab. Cilacap.',
+                'no_hp_siswa' => '088226521921',
+                'email' => 'kanthi@example.com',
+                'alamat_orang_tua' => 'Desa Ujungmanik, Cilacap',
+                'no_hp_orang_tua' => '081234567890',
+                'golongan_darah' => 'O',
+                'penyakit_pernah_diderita' => 'Tidak ada',
+                'kelainan_jasmani' => 'Tidak ada',
+                'tinggi_badan_cm' => 160,
+                'berat_badan_kg' => 52,
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $this->assertDatabaseHas('buku_induk_siswa', [
+            'nomor_induk' => 'BI-00001',
+            'nama_lengkap' => 'Kanthi Pramono',
+            'program_bahasa' => 'Bahasa Jepang',
+            'golongan_darah' => 'O',
+            'tinggi_badan_cm' => 160,
+            'created_by' => $this->admin->id,
+        ]);
+    }
+
+    public function test_required_fields_are_validated_when_creating_record(): void
+    {
+        Livewire::actingAs($this->admin)
+            ->test(CreateBukuIndukSiswa::class)
+            ->fillForm([
+                'nama_lengkap' => '',
+                'nomor_induk' => '',
+                'program_pendidikan' => '',
+                'jenis_kelamin' => null,
+            ])
+            ->call('create')
+            ->assertHasFormErrors([
+                'nama_lengkap',
+                'nomor_induk',
+                'program_pendidikan',
+                'jenis_kelamin',
+            ]);
+    }
+
+    public function test_nomor_induk_must_be_unique(): void
+    {
+        BukuIndukSiswa::factory()->create(['nomor_induk' => 'BI-00002']);
+
+        Livewire::actingAs($this->admin)
+            ->test(CreateBukuIndukSiswa::class)
+            ->fillForm([
+                'nama_lengkap' => 'Duplikat Siswa',
+                'nomor_induk' => 'BI-00002',
+                'program_pendidikan' => 'LPK Bahasa Jepang',
+                'program_bahasa' => 'Bahasa Jepang',
+                'jenis_kelamin' => 'Laki-laki',
+            ])
+            ->call('create')
+            ->assertHasFormErrors(['nomor_induk']);
+    }
+
+    public function test_list_page_can_search_by_nomor_induk_nama_and_program(): void
+    {
+        $nomorIndukRecord = BukuIndukSiswa::factory()->create([
+            'nomor_induk' => 'BI-54321',
+            'nama_lengkap' => 'Alpha Siswa',
+            'program_pendidikan' => 'LPK Bahasa Jepang',
+            'program_bahasa' => 'Bahasa Jepang',
+        ]);
+        $namaRecord = BukuIndukSiswa::factory()->create([
+            'nomor_induk' => 'BI-12345',
+            'nama_lengkap' => 'Beta Program',
+            'program_pendidikan' => 'LPK Bahasa Korea',
+            'program_bahasa' => 'Bahasa Korea',
+        ]);
+        $programRecord = BukuIndukSiswa::factory()->create([
+            'nomor_induk' => 'BI-77777',
+            'nama_lengkap' => 'Gamma User',
+            'program_pendidikan' => 'LPK Bahasa Mandarin',
+            'program_bahasa' => 'Bahasa Mandarin',
+        ]);
+
+        Livewire::actingAs($this->admin)
+            ->test(ListBukuIndukSiswas::class)
+            ->searchTable('BI-54321')
+            ->assertCanSeeTableRecords([$nomorIndukRecord])
+            ->assertCanNotSeeTableRecords([$namaRecord, $programRecord]);
+
+        Livewire::actingAs($this->admin)
+            ->test(ListBukuIndukSiswas::class)
+            ->searchTable('Beta Program')
+            ->assertCanSeeTableRecords([$namaRecord])
+            ->assertCanNotSeeTableRecords([$nomorIndukRecord, $programRecord]);
+
+        Livewire::actingAs($this->admin)
+            ->test(ListBukuIndukSiswas::class)
+            ->searchTable('Mandarin')
+            ->assertCanSeeTableRecords([$programRecord])
+            ->assertCanNotSeeTableRecords([$nomorIndukRecord, $namaRecord]);
+    }
+
+    public function test_detail_page_displays_buku_induk_sections(): void
+    {
+        $record = BukuIndukSiswa::factory()->create([
+            'nomor_induk' => 'BI-10001',
+            'nama_lengkap' => 'Detail Buku Induk',
+            'program_pendidikan' => 'LPK Bahasa Jepang',
+            'program_bahasa' => 'Bahasa Jepang',
+            'golongan_darah' => 'A',
+        ]);
+
+        Livewire::actingAs($this->admin)
+            ->test(ViewBukuIndukSiswa::class, ['record' => $record->getKey()])
+            ->assertSuccessful()
+            ->assertSee('Detail Buku Induk')
+            ->assertSee('BI-10001')
+            ->assertSee('Keterangan Pribadi')
+            ->assertSee('Keterangan Tempat Tinggal')
+            ->assertSee('Keterangan Kesehatan');
+    }
+}

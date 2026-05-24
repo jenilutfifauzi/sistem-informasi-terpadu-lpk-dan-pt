@@ -28,8 +28,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        if (str_starts_with((string) config('app.url'), 'https://')) {
-            URL::forceScheme('https');
+        if (! $this->app->runningInConsole() && str_starts_with((string) config('app.url'), 'https://')) {
+            $host = request()->getHost();
+
+            if (! in_array($host, ['127.0.0.1', 'localhost'], true)) {
+                URL::forceScheme('https');
+            }
         }
 
         CTK::observe(CTKObserver::class);

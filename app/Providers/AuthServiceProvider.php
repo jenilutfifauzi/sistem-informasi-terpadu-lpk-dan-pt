@@ -4,11 +4,13 @@ namespace App\Providers;
 
 // use Illuminate\Support\Facades\Gate;
 use App\Models\Asset;
+use App\Models\BukuIndukSiswa;
 use App\Models\CTK;
 use App\Models\EmployeePT;
 use App\Models\PembayaranPusat;
 use App\Models\User;
 use App\Policies\AssetPolicy;
+use App\Policies\BukuIndukSiswaPolicy;
 use App\Policies\CTKPolicy;
 use App\Policies\EmployeePTPolicy;
 use App\Policies\PembayaranPusatPolicy;
@@ -24,6 +26,7 @@ class AuthServiceProvider extends ServiceProvider
      */
     protected $policies = [
         User::class => UserPolicy::class,
+        BukuIndukSiswa::class => BukuIndukSiswaPolicy::class,
         CTK::class => CTKPolicy::class,
         Asset::class => AssetPolicy::class,
         EmployeePT::class => EmployeePTPolicy::class,
