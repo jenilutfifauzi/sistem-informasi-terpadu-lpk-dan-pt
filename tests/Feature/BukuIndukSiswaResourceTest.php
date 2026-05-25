@@ -12,6 +12,7 @@ use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
+use Maatwebsite\Excel\Facades\Excel;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -160,25 +161,23 @@ class BukuIndukSiswaResourceTest extends TestCase
         BukuIndukSiswa::factory()->create(['program_pendidikan' => 'LPK Bahasa Inggris', 'nomor_induk' => 'BI-EXPORT-01']);
         $target = BukuIndukSiswa::factory()->create(['program_pendidikan' => 'LPK Bahasa Jepang', 'nomor_induk' => 'BI-EXPORT-02']);
 
+        Excel::fake();
+
         Livewire::actingAs($this->admin)
             ->test(ListBukuIndukSiswas::class)
-            ->assertSee('Export Excel');
+            ->assertSee('Export Excel')
+            ->filterTable('program_pendidikan', 'LPK Bahasa Jepang')
+            ->callTableAction('exportExcel');
 
-        $export = new BukuIndukSiswaExport(BukuIndukSiswa::query()->where('program_pendidikan', 'LPK Bahasa Jepang'));
+        Excel::assertDownloaded('buku-induk-siswa-'.now()->format('Y-m-d').'.xlsx', function (BukuIndukSiswaExport $export) use ($target): bool {
+            $exportedRecords = $export->query()->get();
 
-        $this->assertCount(1, $export->query()->get());
-        $this->assertSame('BI-EXPORT-02', $export->map($target->fresh())[1]);
-        $this->assertSame('LPK Bahasa Jepang', $export->map($target->fresh())[2]);
-        $this->assertSame('Nomor Induk', $export->headings()[1]);
-
-        activity()
-            ->causedBy($this->admin)
-            ->withProperties([
-                'export_type' => 'buku_induk_siswa',
-                'format' => 'xlsx',
-                'record_count' => 1,
-            ])
-            ->log('Data exported');
+            return $exportedRecords->count() === 1
+                && $exportedRecords->first()->is($target)
+                && $export->map($target->fresh())[1] === 'BI-EXPORT-02'
+                && $export->map($target->fresh())[2] === 'LPK Bahasa Jepang'
+                && $export->headings()[1] === 'Nomor Induk';
+        });
 
         $this->assertDatabaseHas(Activity::class, [
             'description' => 'Data exported',
