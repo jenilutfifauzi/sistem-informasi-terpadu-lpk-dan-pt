@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Exports\BukuIndukSiswaExport;
 use App\Filament\Resources\BukuIndukSiswaResource\Pages\CreateBukuIndukSiswa;
 use App\Filament\Resources\BukuIndukSiswaResource\Pages\ListBukuIndukSiswas;
 use App\Filament\Resources\BukuIndukSiswaResource\Pages\ViewBukuIndukSiswa;
@@ -11,6 +12,7 @@ use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
+use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -40,6 +42,7 @@ class BukuIndukSiswaResourceTest extends TestCase
             'delete_buku_induk_siswa',
             'restore_buku_induk_siswa',
             'force_delete_buku_induk_siswa',
+            'export_buku_induk_siswa',
         ];
 
         foreach ($permissions as $permission) {
@@ -99,7 +102,7 @@ class BukuIndukSiswaResourceTest extends TestCase
 
     public function test_audit_fields_are_not_mass_assignable(): void
     {
-        $model = new BukuIndukSiswa();
+        $model = new BukuIndukSiswa;
 
         $this->assertNotContains('created_by', $model->getFillable());
         $this->assertNotContains('updated_by', $model->getFillable());
@@ -150,6 +153,46 @@ class BukuIndukSiswaResourceTest extends TestCase
         $fotoEntry = $detailPage->instance()->getSchema('infolist')->getComponent('foto_path');
 
         $this->assertSame('public', $fotoEntry->getDiskName());
+    }
+
+    public function test_export_visibility_and_exporter_follow_filtered_dataset(): void
+    {
+        BukuIndukSiswa::factory()->create(['program_pendidikan' => 'LPK Bahasa Inggris', 'nomor_induk' => 'BI-EXPORT-01']);
+        $target = BukuIndukSiswa::factory()->create(['program_pendidikan' => 'LPK Bahasa Jepang', 'nomor_induk' => 'BI-EXPORT-02']);
+
+        Livewire::actingAs($this->admin)
+            ->test(ListBukuIndukSiswas::class)
+            ->assertSee('Export Excel');
+
+        $export = new BukuIndukSiswaExport(BukuIndukSiswa::query()->where('program_pendidikan', 'LPK Bahasa Jepang'));
+
+        $this->assertCount(1, $export->query()->get());
+        $this->assertSame('BI-EXPORT-02', $export->map($target->fresh())[1]);
+        $this->assertSame('LPK Bahasa Jepang', $export->map($target->fresh())[2]);
+        $this->assertSame('Nomor Induk', $export->headings()[1]);
+
+        activity()
+            ->causedBy($this->admin)
+            ->withProperties([
+                'export_type' => 'buku_induk_siswa',
+                'format' => 'xlsx',
+                'record_count' => 1,
+            ])
+            ->log('Data exported');
+
+        $this->assertDatabaseHas(Activity::class, [
+            'description' => 'Data exported',
+            'causer_id' => $this->admin->id,
+        ]);
+    }
+
+    public function test_user_without_export_permission_cannot_export(): void
+    {
+        Livewire::actingAs($this->viewer)
+            ->test(ListBukuIndukSiswas::class)
+            ->assertDontSee('Export Excel');
+
+        $this->assertFalse($this->viewer->can('export', BukuIndukSiswa::class));
     }
 
     public function test_required_fields_are_validated_when_creating_record(): void

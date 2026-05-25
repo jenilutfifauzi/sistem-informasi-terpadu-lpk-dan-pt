@@ -34,6 +34,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'delete_buku_induk_siswa',
             'restore_buku_induk_siswa',
             'force_delete_buku_induk_siswa',
+            'export_buku_induk_siswa',
         ];
 
         foreach ($permissions as $permission) {
@@ -96,6 +97,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'update_buku_induk_siswa',
             'delete_buku_induk_siswa',
             'restore_buku_induk_siswa',
+            'export_buku_induk_siswa',
         ]);
     }
 
