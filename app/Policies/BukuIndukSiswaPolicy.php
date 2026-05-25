@@ -41,4 +41,9 @@ class BukuIndukSiswaPolicy
     {
         return $user->hasPermissionTo('force_delete_buku_induk_siswa');
     }
+
+    public function export(User $user): bool
+    {
+        return $user->hasPermissionTo('export_buku_induk_siswa');
+    }
 }

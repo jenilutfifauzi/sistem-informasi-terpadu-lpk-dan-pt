@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Exports\BukuIndukSiswaExport;
 use App\Filament\Resources\BukuIndukSiswaResource\Pages;
 use App\Models\BukuIndukSiswa;
 use BackedEnum;
@@ -17,6 +18,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Maatwebsite\Excel\Excel as ExcelFormat;
+use Maatwebsite\Excel\Facades\Excel;
 
 class BukuIndukSiswaResource extends Resource
 {
@@ -283,6 +286,34 @@ class BukuIndukSiswaResource extends Resource
                         'Tidak Tahu' => 'Tidak Tahu',
                     ]),
                 Tables\Filters\TrashedFilter::make(),
+            ])
+            ->headerActions([
+                Actions\Action::make('exportExcel')
+                    ->label('Export Excel')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('success')
+                    ->visible(fn (): bool => Auth::user()?->can('export', BukuIndukSiswa::class) ?? false)
+                    ->action(function ($livewire) {
+                        abort_unless(Auth::user()?->can('export', BukuIndukSiswa::class), 403);
+
+                        $query = $livewire->getFilteredTableQuery();
+                        $recordCount = (clone $query)->count();
+
+                        activity()
+                            ->causedBy(Auth::user())
+                            ->withProperties([
+                                'export_type' => 'buku_induk_siswa',
+                                'format' => 'xlsx',
+                                'record_count' => $recordCount,
+                            ])
+                            ->log('Data exported');
+
+                        return Excel::download(
+                            new BukuIndukSiswaExport($query),
+                            'buku-induk-siswa-'.now()->format('Y-m-d').'.xlsx',
+                            ExcelFormat::XLSX
+                        );
+                    }),
             ])
             ->actions([
                 Actions\ViewAction::make(),
