@@ -250,7 +250,7 @@
             </p>
             <div class="flex gap-6">
                 <a href="{{ route('privacy-policy') }}" class="text-sm text-muted-foreground hover:text-foreground">Privacy Policy</a>
-                <a href="#" class="text-sm text-muted-foreground hover:text-foreground">Terms of Service</a>
+                <a href="{{ route('terms-of-service') }}" class="text-sm text-muted-foreground hover:text-foreground">Terms of Service</a>
             </div>
         </div>
     </footer>

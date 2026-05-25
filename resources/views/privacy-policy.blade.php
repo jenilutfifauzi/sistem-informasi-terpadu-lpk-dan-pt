@@ -125,6 +125,7 @@
             <p class="text-sm text-muted-foreground">&copy; 2026 — Semua Hak Dilindungi</p>
             <div class="flex gap-6">
                 <a href="{{ route('privacy-policy') }}" class="text-sm font-medium text-primary">Privacy Policy</a>
+                <a href="{{ route('terms-of-service') }}" class="text-sm text-muted-foreground hover:text-foreground">Terms of Service</a>
                 <a href="{{ url('/') }}" class="text-sm text-muted-foreground hover:text-foreground">Beranda</a>
             </div>
         </div>
