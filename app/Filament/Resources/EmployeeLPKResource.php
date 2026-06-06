@@ -15,6 +15,7 @@ use Filament\Schemas;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Maatwebsite\Excel\Excel as ExcelFormat;
 use Maatwebsite\Excel\Facades\Excel;
 
 class EmployeeLPKResource extends Resource
@@ -225,7 +226,7 @@ class EmployeeLPKResource extends Resource
             ])
             ->headerActions([
                 Actions\Action::make('export')
-                    ->label('Export CSV')
+                    ->label('Export Excel (.xlsx)')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->color('success')
                     ->action(function ($livewire) {
@@ -236,15 +237,15 @@ class EmployeeLPKResource extends Resource
                             ->causedBy(auth()->user())
                             ->withProperties([
                                 'export_type' => 'karyawan_lpk',
-                                'format' => 'csv',
+                                'format' => 'xlsx',
                                 'record_count' => $query->count(),
                             ])
-                            ->log('Data exported');
+                            ->log('Data exported to xlsx');
 
                         return Excel::download(
                             $export,
-                            'karyawan-lpk-'.now()->format('Y-m-d').'.csv',
-                            \Maatwebsite\Excel\Excel::CSV
+                            'karyawan-lpk-'.now()->format('Y-m-d').'.xlsx',
+                            ExcelFormat::XLSX
                         );
                     }),
             ])

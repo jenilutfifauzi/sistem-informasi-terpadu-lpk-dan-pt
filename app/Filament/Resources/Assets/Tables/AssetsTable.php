@@ -16,6 +16,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Excel as ExcelFormat;
 use Maatwebsite\Excel\Facades\Excel;
 
 class AssetsTable
@@ -113,7 +114,7 @@ class AssetsTable
             ])
             ->headerActions([
                 Action::make('export')
-                    ->label('Export CSV')
+                    ->label('Export Excel (.xlsx)')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->action(function ($livewire) {
                         $query = $livewire->getFilteredTableQuery();
@@ -129,22 +130,21 @@ class AssetsTable
                             return;
                         }
 
-                        // Log export activity
                         activity()
                             ->causedBy(Auth::user())
                             ->withProperties([
                                 'exported_count' => $count,
-                                'format' => 'csv',
+                                'format' => 'xlsx',
                                 'model' => 'Asset',
                             ])
-                            ->log('Exported '.$count.' assets to csv');
+                            ->log('Exported '.$count.' assets to xlsx');
 
-                        $filename = 'assets_'.now()->format('Y-m-d_His').'.csv';
+                        $filename = 'assets_'.now()->format('Y-m-d_His').'.xlsx';
 
                         return Excel::download(
                             new AssetExport($query),
                             $filename,
-                            \Maatwebsite\Excel\Excel::CSV
+                            ExcelFormat::XLSX
                         );
                     }),
             ])

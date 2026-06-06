@@ -7,11 +7,13 @@ use App\Filament\Exports\CTKExport;
 use App\Filament\Resources\CTKS\CTKResource;
 use Filament\Actions;
 use Filament\Forms;
+use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Maatwebsite\Excel\Excel as ExcelFormat;
 use Maatwebsite\Excel\Facades\Excel;
 
 class CTKSTable
@@ -41,8 +43,6 @@ class CTKSTable
                     ->formatStateUsing(fn ($record) => $record->completed_stages_count === 15 ? 'Lengkap' : 'Belum Lengkap')
                     ->color(fn ($record) => $record->completed_stages_count === 15 ? 'success' : 'warning')
                     ->sortable(query: function (Builder $query, string $direction): Builder {
-                        // Custom sorting logic: count completed stages
-                        // We'll use current_stage as a proxy since stages complete sequentially
                         return $query->orderBy('current_stage', $direction);
                     }),
                 TextColumn::make('current_entity')
@@ -66,8 +66,6 @@ class CTKSTable
                     ->icon(fn ($record) => $record->completed_stages_count === 15 ? 'heroicon-o-check-circle' : 'heroicon-o-clock')
                     ->description(fn ($record) => $record->completion_percentage.'%')
                     ->sortable(query: function (Builder $query, string $direction): Builder {
-                        // Custom sorting would require a computed column in database
-                        // For now, sort by current_stage as a proxy
                         return $query->orderBy('current_stage', $direction);
                     }),
                 TextColumn::make('no_telepon')
@@ -132,26 +130,38 @@ class CTKSTable
             ])
             ->headerActions([
                 Actions\Action::make('export')
-                    ->label('Export CSV')
+                    ->label('Export Excel (.xlsx)')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->color('success')
                     ->action(function ($livewire) {
                         $query = $livewire->getFilteredTableQuery();
+                        $count = $query->count();
+
+                        if ($count === 0) {
+                            Notification::make()
+                                ->warning()
+                                ->title('No Data to Export')
+                                ->body('There are no CTK records matching the current filters.')
+                                ->send();
+
+                            return;
+                        }
+
                         $export = new CTKExport($query);
 
                         activity()
                             ->causedBy(auth()->user())
                             ->withProperties([
                                 'export_type' => 'ctk',
-                                'format' => 'csv',
-                                'record_count' => $query->count(),
+                                'format' => 'xlsx',
+                                'record_count' => $count,
                             ])
-                            ->log('Data exported');
+                            ->log('Exported CTK data to xlsx');
 
                         return Excel::download(
                             $export,
-                            'ctk-'.now()->format('Y-m-d').'.csv',
-                            \Maatwebsite\Excel\Excel::CSV
+                            'ctk-'.now()->format('Y-m-d_His').'.xlsx',
+                            ExcelFormat::XLSX
                         );
                     }),
             ])
