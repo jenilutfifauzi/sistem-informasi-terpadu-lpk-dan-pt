@@ -2,9 +2,17 @@
 
 namespace Tests\Feature\Exports;
 
+use App\Enums\JabatanLPK;
+use App\Enums\StatusKepegawaian;
 use App\Filament\Exports\EmployeeLPKExport;
 use App\Models\EmployeeLPK;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithColumnWidths;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Events\AfterSheet;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use Tests\TestCase;
 
 class EmployeeLPKExportTest extends TestCase
@@ -21,152 +29,134 @@ class EmployeeLPKExportTest extends TestCase
         parent::tearDown();
     }
 
-    /** @test */
-    public function test_export_class_generates_correct_headings()
+    public function test_it_generates_correct_headings(): void
     {
-        $query = EmployeeLPK::query();
-        $export = new EmployeeLPKExport($query);
+        $exporter = new EmployeeLPKExport(EmployeeLPK::query());
 
-        $headings = $export->headings();
-
-        $this->assertIsArray($headings);
-        $this->assertContains('Nama Lengkap', $headings);
-        $this->assertContains('Email', $headings);
-        $this->assertContains('Jabatan', $headings);
-        $this->assertContains('Status', $headings);
-        $this->assertNotContains('NIK', $headings); // NIK should be excluded per FR-009
+        $this->assertSame([
+            'ID',
+            'Nama Lengkap',
+            'Email',
+            'Telepon',
+            'Alamat',
+            'Tanggal Lahir',
+            'Jenis Kelamin',
+            'Jabatan',
+            'Status',
+            'Tanggal Bergabung',
+            'Honor Pokok',
+            'Honor Per Jam',
+        ], $exporter->headings());
     }
 
-    /** @test */
-    public function test_export_maps_employee_data_correctly()
+    public function test_it_maps_employee_data_correctly(): void
     {
-        $employee = EmployeeLPK::factory()->create([
-            'nama_lengkap' => 'Test Employee',
-            'email' => 'test@example.com',
-        ]);
-
-        $query = EmployeeLPK::query()->where('id', $employee->id);
-        $export = new EmployeeLPKExport($query);
-
-        $mapped = $export->map($employee);
-
-        $this->assertIsArray($mapped);
-        $this->assertContains('Test Employee', $mapped);
-        $this->assertContains('test@example.com', $mapped);
-    }
-
-    /** @test */
-    public function test_nik_is_excluded_from_export()
-    {
-        $employee = EmployeeLPK::factory()->create([
-            'nik' => '9999999999999999',
-            'nama_lengkap' => 'Test Employee NIK',
-        ]);
-
-        $query = EmployeeLPK::query()->where('id', $employee->id);
-        $export = new EmployeeLPKExport($query);
-
-        $mapped = $export->map($employee);
-        $headings = $export->headings();
-
-        // NIK should not be in mapped data or headings
-        $this->assertNotContains('9999999999999999', $mapped);
-        $this->assertNotContains('NIK', $headings);
-    }
-
-    /** @test */
-    public function test_enum_values_are_transformed_to_labels()
-    {
-        $employee = EmployeeLPK::factory()->create([
-            'jabatan' => 'Instruktur',
-            'status' => 'Aktif',
-        ]);
-
-        $query = EmployeeLPK::query()->where('id', $employee->id);
-        $export = new EmployeeLPKExport($query);
-
-        $mapped = $export->map($employee);
-
-        // Check that labels are present (not raw enum values)
-        $this->assertContains('Instruktur', $mapped);
-        $this->assertContains('Aktif', $mapped);
-    }
-
-    /** @test */
-    public function test_export_respects_query_filters()
-    {
-        // Create test data with unique NIKs
-        $activeEmployee = EmployeeLPK::factory()->create([
-            'status' => 'Aktif',
-            'nik' => '1111111111111111',
-        ]);
-        $resignedEmployee = EmployeeLPK::factory()->create([
-            'status' => 'Resign',
-            'nik' => '2222222222222222',
-        ]);
-
-        // Query only active employees
-        $query = EmployeeLPK::query()
-            ->where('status', 'Aktif')
-            ->whereIn('nik', ['1111111111111111', '2222222222222222']);
-        $export = new EmployeeLPKExport($query);
-
-        $result = $export->query()->get();
-
-        $this->assertCount(1, $result);
-        $this->assertEquals('Aktif', $result->first()->status->value);
-    }
-
-    /** @test */
-    public function test_export_handles_empty_dataset()
-    {
-        // Create an empty query
-        $query = EmployeeLPK::query()->where('id', 0); // No match
-        $export = new EmployeeLPKExport($query);
-
-        $result = $export->query()->get();
-
-        $this->assertCount(0, $result);
-        $this->assertIsArray($export->headings());
-    }
-
-    /** @test */
-    public function test_export_includes_honor_fields()
-    {
-        $employee = EmployeeLPK::factory()->create([
-            'honor_pokok' => 5000000,
+        $employee = EmployeeLPK::factory()->instruktur()->create([
+            'nama_lengkap' => 'Instruktur LPK Test',
+            'email' => 'instruktur-lpk-test@example.test',
+            'telepon' => '08123456789',
+            'alamat' => 'Jl. LPK No. 1',
+            'jenis_kelamin' => 'Laki-laki',
+            'status' => StatusKepegawaian::Aktif,
+            'honor_pokok' => 4500000,
             'honor_per_jam' => 150000,
         ]);
 
-        $query = EmployeeLPK::query()->where('id', $employee->id);
-        $export = new EmployeeLPKExport($query);
+        $exporter = new EmployeeLPKExport(EmployeeLPK::query()->whereKey($employee->id));
+        $mapped = $exporter->map($employee->fresh());
 
-        $mapped = $export->map($employee);
-        $headings = $export->headings();
-
-        $this->assertContains('Honor Pokok', $headings);
-        $this->assertContains('Honor Per Jam', $headings);
-
-        // Honor values should be present in mapped data (may be string or numeric)
-        $mappedString = implode(',', $mapped);
-        $this->assertStringContainsString('5000000', $mappedString);
-        $this->assertStringContainsString('150000', $mappedString);
+        $this->assertSame($employee->id, $mapped[0]);
+        $this->assertSame('Instruktur LPK Test', $mapped[1]);
+        $this->assertSame('instruktur-lpk-test@example.test', $mapped[2]);
+        $this->assertSame('08123456789', $mapped[3]);
+        $this->assertSame('Jl. LPK No. 1', $mapped[4]);
+        $this->assertSame('Laki-laki', $mapped[6]);
+        $this->assertSame(JabatanLPK::Instruktur->getLabel(), $mapped[7]);
+        $this->assertSame(StatusKepegawaian::Aktif->getLabel(), $mapped[8]);
+        $this->assertSame('Rp 4.500.000', $mapped[10]);
+        $this->assertSame('Rp 150.000', $mapped[11]);
     }
 
-    /** @test */
-    public function test_export_formats_dates_correctly()
+    public function test_it_keeps_zero_honor_visible_in_export(): void
     {
         $employee = EmployeeLPK::factory()->create([
-            'tanggal_lahir' => '1990-01-15',
-            'tanggal_bergabung' => '2020-03-20',
+            'email' => 'lpk-zero-honor@example.test',
+            'honor_pokok' => 0,
+            'honor_per_jam' => 0,
         ]);
 
-        $query = EmployeeLPK::query()->where('id', $employee->id);
-        $export = new EmployeeLPKExport($query);
+        $exporter = new EmployeeLPKExport(EmployeeLPK::query()->whereKey($employee->id));
+        $mapped = $exporter->map($employee->fresh());
 
-        $mapped = $export->map($employee);
+        $this->assertSame('Rp 0', $mapped[10]);
+        $this->assertSame('Rp 0', $mapped[11]);
+    }
 
-        $this->assertContains('1990-01-15', $mapped);
-        $this->assertContains('2020-03-20', $mapped);
+    public function test_it_respects_query_filters(): void
+    {
+        $included = EmployeeLPK::factory()->create([
+            'email' => 'included-lpk@example.test',
+            'status' => StatusKepegawaian::Aktif,
+        ]);
+        EmployeeLPK::factory()->resign()->create([
+            'email' => 'excluded-lpk@example.test',
+        ]);
+
+        $exporter = new EmployeeLPKExport(
+            EmployeeLPK::query()->whereKey([$included->id])
+        );
+
+        $results = $exporter->query()->get();
+
+        $this->assertCount(1, $results);
+        $this->assertSame($included->id, $results->first()->id);
+    }
+
+    public function test_it_handles_empty_datasets(): void
+    {
+        $exporter = new EmployeeLPKExport(EmployeeLPK::query()->whereRaw('1 = 0'));
+
+        $this->assertCount(0, $exporter->query()->get());
+        $this->assertIsArray($exporter->headings());
+    }
+
+    public function test_it_implements_xlsx_styling_contracts(): void
+    {
+        $exporter = new EmployeeLPKExport(EmployeeLPK::query());
+
+        $this->assertInstanceOf(ShouldAutoSize::class, $exporter);
+        $this->assertInstanceOf(WithColumnWidths::class, $exporter);
+        $this->assertInstanceOf(WithEvents::class, $exporter);
+        $this->assertInstanceOf(WithStyles::class, $exporter);
+    }
+
+    public function test_it_provides_styled_header_configuration(): void
+    {
+        $exporter = new EmployeeLPKExport(EmployeeLPK::query());
+        $styles = $exporter->styles(new Worksheet());
+
+        $this->assertArrayHasKey(1, $styles);
+        $this->assertTrue($styles[1]['font']['bold']);
+        $this->assertSame('FFFFFF', $styles[1]['font']['color']['rgb']);
+        $this->assertSame('1D4ED8', $styles[1]['fill']['startColor']['rgb']);
+    }
+
+    public function test_it_registers_after_sheet_event_for_table_formatting(): void
+    {
+        $exporter = new EmployeeLPKExport(EmployeeLPK::query());
+        $events = $exporter->registerEvents();
+
+        $this->assertArrayHasKey(AfterSheet::class, $events);
+        $this->assertIsCallable($events[AfterSheet::class]);
+    }
+
+    public function test_it_defines_readable_column_widths(): void
+    {
+        $exporter = new EmployeeLPKExport(EmployeeLPK::query());
+        $columnWidths = $exporter->columnWidths();
+
+        $this->assertSame(28, $columnWidths['B']);
+        $this->assertSame(40, $columnWidths['E']);
+        $this->assertSame(18, $columnWidths['K']);
     }
 }

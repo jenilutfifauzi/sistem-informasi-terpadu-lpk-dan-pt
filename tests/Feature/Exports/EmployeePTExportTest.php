@@ -2,13 +2,16 @@
 
 namespace Tests\Feature\Exports;
 
-use App\Enums\DivisiPT;
-use App\Enums\JabatanPT;
-use App\Enums\JenisKontrak;
 use App\Enums\StatusKepegawaian;
 use App\Filament\Exports\EmployeePTExport;
 use App\Models\EmployeePT;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithColumnWidths;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Events\AfterSheet;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use Tests\TestCase;
 
 class EmployeePTExportTest extends TestCase
@@ -25,76 +28,127 @@ class EmployeePTExportTest extends TestCase
         parent::tearDown();
     }
 
-    /** @test */
-    public function export_class_generates_correct_headings(): void
+    public function test_it_generates_correct_headings(): void
     {
-        $query = EmployeePT::query();
-        $export = new EmployeePTExport($query);
+        $exporter = new EmployeePTExport(EmployeePT::query());
 
-        $headings = $export->headings();
-
-        $this->assertIsArray($headings);
-        $this->assertContains('NIK', $headings);
-        $this->assertContains('Nama Lengkap', $headings);
-        $this->assertContains('Email', $headings);
-        $this->assertContains('Jabatan', $headings);
-        $this->assertContains('Divisi', $headings);
-        $this->assertContains('Status', $headings);
-        $this->assertContains('Jenis Kontrak', $headings);
-        $this->assertContains('Tanggal Bergabung', $headings);
-        $this->assertContains('Gaji Pokok', $headings);
-        $this->assertContains('Tunjangan', $headings);
+        $this->assertSame([
+            'ID',
+            'NIK',
+            'Nama Lengkap',
+            'Email',
+            'Jabatan',
+            'Divisi',
+            'Status',
+            'Jenis Kontrak',
+            'Tanggal Bergabung',
+            'Gaji Pokok',
+            'Tunjangan',
+            'Tanggal Dibuat',
+        ], $exporter->headings());
     }
 
-    /** @test */
-    public function export_maps_employee_data_correctly(): void
+    public function test_it_maps_employee_data_correctly(): void
     {
         $employee = EmployeePT::factory()->create([
-            'nama_lengkap' => 'Export Test Employee',
-            'email' => 'export@example.com',
-            'jabatan' => JabatanPT::StafHRD,
-            'divisi' => DivisiPT::HRD,
-            'status' => StatusKepegawaian::Aktif,
-            'jenis_kontrak' => JenisKontrak::Tetap,
+            'email' => 'employee-pt-test@example.test',
+            'nik' => '1234567890123456',
+            'nama_lengkap' => 'Karyawan PT Test',
+            'gaji_pokok' => 7000000,
+            'tunjangan' => 1000000,
         ]);
 
-        $query = EmployeePT::query()->where('id', $employee->id);
-        $export = new EmployeePTExport($query);
+        $exporter = new EmployeePTExport(EmployeePT::query()->whereKey($employee->id));
+        $mapped = $exporter->map($employee->fresh());
 
-        $mapped = $export->map($employee);
-
-        $this->assertIsArray($mapped);
-        $this->assertContains('Export Test Employee', $mapped);
-        $this->assertContains('export@example.com', $mapped);
+        $this->assertSame($employee->id, $mapped[0]);
+        $this->assertSame('1234567890123456', $mapped[1]);
+        $this->assertSame('Karyawan PT Test', $mapped[2]);
+        $this->assertSame('employee-pt-test@example.test', $mapped[3]);
+        $this->assertSame('Rp 7.000.000', $mapped[9]);
+        $this->assertSame('Rp 1.000.000', $mapped[10]);
     }
 
-    /** @test */
-    public function export_enum_values_are_transformed_to_labels(): void
+    public function test_it_keeps_zero_salary_visible_in_export(): void
     {
         $employee = EmployeePT::factory()->create([
-            'jabatan' => JabatanPT::StafHRD,
-            'status' => StatusKepegawaian::Aktif,
+            'email' => 'pt-zero-salary@example.test',
+            'gaji_pokok' => 0,
+            'tunjangan' => 0,
         ]);
 
-        $query = EmployeePT::query()->where('id', $employee->id);
-        $export = new EmployeePTExport($query);
+        $exporter = new EmployeePTExport(EmployeePT::query()->whereKey($employee->id));
+        $mapped = $exporter->map($employee->fresh());
 
-        $mapped = $export->map($employee);
-
-        // Enum labels should be present, not raw values
-        $this->assertContains('Staf HRD', $mapped);
-        $this->assertContains('Aktif', $mapped);
+        $this->assertSame('Rp 0', $mapped[9]);
+        $this->assertSame('Rp 0', $mapped[10]);
     }
 
-    /** @test */
-    public function export_returns_correct_number_of_rows(): void
+    public function test_it_respects_query_filters(): void
     {
-        $existingCount = EmployeePT::query()->count();
-        EmployeePT::factory(5)->create();
+        $included = EmployeePT::factory()->create([
+            'email' => 'included-pt@example.test',
+            'status' => StatusKepegawaian::Aktif,
+        ]);
+        EmployeePT::factory()->resign()->create([
+            'email' => 'excluded-pt@example.test',
+        ]);
 
-        $query = EmployeePT::query();
-        $export = new EmployeePTExport($query);
+        $exporter = new EmployeePTExport(
+            EmployeePT::query()->whereKey([$included->id])
+        );
 
-        $this->assertEquals($existingCount + 5, $export->query()->count());
+        $results = $exporter->query()->get();
+
+        $this->assertCount(1, $results);
+        $this->assertSame($included->id, $results->first()->id);
+    }
+
+    public function test_it_handles_empty_datasets(): void
+    {
+        $exporter = new EmployeePTExport(EmployeePT::query()->whereRaw('1 = 0'));
+
+        $this->assertCount(0, $exporter->query()->get());
+        $this->assertIsArray($exporter->headings());
+    }
+
+    public function test_it_implements_xlsx_styling_contracts(): void
+    {
+        $exporter = new EmployeePTExport(EmployeePT::query());
+
+        $this->assertInstanceOf(ShouldAutoSize::class, $exporter);
+        $this->assertInstanceOf(WithColumnWidths::class, $exporter);
+        $this->assertInstanceOf(WithEvents::class, $exporter);
+        $this->assertInstanceOf(WithStyles::class, $exporter);
+    }
+
+    public function test_it_provides_styled_header_configuration(): void
+    {
+        $exporter = new EmployeePTExport(EmployeePT::query());
+        $styles = $exporter->styles(new Worksheet());
+
+        $this->assertArrayHasKey(1, $styles);
+        $this->assertTrue($styles[1]['font']['bold']);
+        $this->assertSame('FFFFFF', $styles[1]['font']['color']['rgb']);
+        $this->assertSame('1D4ED8', $styles[1]['fill']['startColor']['rgb']);
+    }
+
+    public function test_it_registers_after_sheet_event_for_table_formatting(): void
+    {
+        $exporter = new EmployeePTExport(EmployeePT::query());
+        $events = $exporter->registerEvents();
+
+        $this->assertArrayHasKey(AfterSheet::class, $events);
+        $this->assertIsCallable($events[AfterSheet::class]);
+    }
+
+    public function test_it_defines_readable_column_widths(): void
+    {
+        $exporter = new EmployeePTExport(EmployeePT::query());
+        $columnWidths = $exporter->columnWidths();
+
+        $this->assertSame(20, $columnWidths['B']);
+        $this->assertSame(28, $columnWidths['C']);
+        $this->assertSame(18, $columnWidths['J']);
     }
 }
