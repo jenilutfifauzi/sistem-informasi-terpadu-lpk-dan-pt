@@ -21,7 +21,7 @@ class UserFactory extends Factory
     {
         return [
             'name' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
+            'email' => (string) Str::uuid().'@example.test',
             'email_verified_at' => now(),
             'password' => Hash::make('password'),
             'entity' => fake()->randomElement(EntityType::cases()),

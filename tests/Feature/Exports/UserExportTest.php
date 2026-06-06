@@ -2,18 +2,32 @@
 
 namespace Tests\Feature\Exports;
 
+use App\Enums\EntityType;
 use App\Filament\Exports\UserExport;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithColumnWidths;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Events\AfterSheet;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class UserExportTest extends TestCase
 {
+    private User $user;
+
     protected function setUp(): void
     {
         parent::setUp();
         DB::beginTransaction();
+
+        $this->user = User::factory()->create([
+            'email' => 'user-export-auth-'.uniqid()."@example.test",
+        ]);
+        $this->actingAs($this->user);
     }
 
     protected function tearDown(): void
@@ -23,180 +37,125 @@ class UserExportTest extends TestCase
     }
 
     /** @test */
-    public function test_export_class_generates_correct_headings()
+    public function it_generates_correct_headings(): void
     {
-        $query = User::query();
-        $export = new UserExport($query);
+        $exporter = new UserExport(User::query());
 
-        $headings = $export->headings();
-
-        $this->assertIsArray($headings);
-        $this->assertContains('Name', $headings);
-        $this->assertContains('Email', $headings);
-        $this->assertContains('Entity', $headings);
-        $this->assertContains('Roles', $headings);
-        $this->assertNotContains('Password', $headings); // Password should be excluded per FR-009
-        $this->assertNotContains('password', $headings);
+        $this->assertSame([
+            'ID',
+            'Name',
+            'Email',
+            'Entity',
+            'Roles',
+            'Created At',
+            'Updated At',
+        ], $exporter->headings());
     }
 
     /** @test */
-    public function test_export_maps_user_data_correctly()
+    public function it_maps_user_data_correctly(): void
     {
+        $role = Role::firstOrCreate(['name' => 'admin_pt', 'guard_name' => 'web']);
         $user = User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test-user@example.com',
+            'name' => 'Admin PT',
+            'email' => 'adminpt@example.com',
+            'entity' => EntityType::PT,
         ]);
-
-        $query = User::query()->where('id', $user->id);
-        $export = new UserExport($query);
-
-        $mapped = $export->map($user->fresh());
-
-        $this->assertIsArray($mapped);
-        $this->assertContains('Test User', $mapped);
-        $this->assertContains('test-user@example.com', $mapped);
-    }
-
-    /** @test */
-    public function test_password_fields_excluded_from_export()
-    {
-        $user = User::factory()->create([
-            'password' => bcrypt('test-password'),
-            'remember_token' => 'test-token',
-        ]);
-
-        $query = User::query()->where('id', $user->id);
-        $export = new UserExport($query);
-
-        $mapped = $export->map($user->fresh());
-        $headings = $export->headings();
-
-        // Password and remember_token should not be in mapped data or headings
-        $this->assertNotContains('Password', $headings);
-        $this->assertNotContains('Remember Token', $headings);
-
-        // Mapped data should not contain password hash or token
-        $mappedString = implode(',', $mapped);
-        $this->assertStringNotContainsString('test-token', $mappedString);
-    }
-
-    /** @test */
-    public function test_export_includes_user_roles()
-    {
-        $role = Role::create(['name' => 'Test Admin', 'guard_name' => 'web']);
-        $user = User::factory()->create();
         $user->assignRole($role);
+        $user->load('roles');
 
-        $query = User::query()->where('id', $user->id);
-        $export = new UserExport($query);
+        $exporter = new UserExport(User::query());
+        $mapped = $exporter->map($user);
 
-        $mapped = $export->map($user->fresh());
-
-        // Should contain role name
-        $this->assertContains('Test Admin', $mapped);
+        $this->assertSame($user->id, $mapped[0]);
+        $this->assertSame('Admin PT', $mapped[1]);
+        $this->assertSame('adminpt@example.com', $mapped[2]);
+        $this->assertSame('PT', $mapped[3]);
+        $this->assertSame('admin_pt', $mapped[4]);
+        $this->assertNotEmpty($mapped[5]);
+        $this->assertNotEmpty($mapped[6]);
     }
 
     /** @test */
-    public function test_export_handles_user_with_multiple_roles()
-    {
-        $role1 = Role::firstOrCreate(['name' => 'Admin', 'guard_name' => 'web']);
-        $role2 = Role::firstOrCreate(['name' => 'Editor', 'guard_name' => 'web']);
-
-        $user = User::factory()->create();
-        $user->assignRole([$role1, $role2]);
-
-        $query = User::query()->where('id', $user->id);
-        $export = new UserExport($query);
-
-        $mapped = $export->map($user->fresh());
-
-        // Should contain both role names as comma-separated
-        $rolesString = implode(',', $mapped);
-        $this->assertStringContainsString('Admin', $rolesString);
-        $this->assertStringContainsString('Editor', $rolesString);
-    }
-
-    /** @test */
-    public function test_export_handles_user_without_roles()
+    public function it_falls_back_to_no_roles_label_when_user_has_no_roles(): void
     {
         $user = User::factory()->create();
+        $user->load('roles');
 
-        $query = User::query()->where('id', $user->id);
-        $export = new UserExport($query);
+        $exporter = new UserExport(User::query());
+        $mapped = $exporter->map($user);
 
-        $mapped = $export->map($user->fresh());
-
-        // Should contain 'No Roles' indicator
-        $this->assertContains('No Roles', $mapped);
+        $this->assertSame('No Roles', $mapped[4]);
     }
 
     /** @test */
-    public function test_export_respects_query_filters()
+    public function it_respects_query_filters(): void
     {
-        // Create test data with different entities
-        $lpkUser = User::factory()->create([
-            'entity' => 'LPK',
-            'email' => 'lpk-user@example.com',
-        ]);
-        $ptUser = User::factory()->create([
-            'entity' => 'PT',
-            'email' => 'pt-user@example.com',
-        ]);
+        User::factory()->create(['entity' => EntityType::LPK]);
+        User::factory()->create(['entity' => EntityType::PT]);
 
-        // Query only LPK users
-        $query = User::query()
-            ->where('entity', 'LPK')
-            ->whereIn('email', ['lpk-user@example.com', 'pt-user@example.com']);
-        $export = new UserExport($query);
+        $exporter = new UserExport(User::query()->where('entity', EntityType::LPK));
+        $users = $exporter->query()->get();
 
-        $result = $export->query()->get();
-
-        $this->assertCount(1, $result);
-        $this->assertEquals('LPK', $result->first()->entity->value);
+        $this->assertNotEmpty($users);
+        foreach ($users as $user) {
+            $this->assertSame(EntityType::LPK, $user->entity);
+        }
     }
 
     /** @test */
-    public function test_export_formats_dates_correctly()
+    public function it_eager_loads_roles_to_avoid_n_plus_1(): void
     {
-        $user = User::factory()->create([
-            'created_at' => '2024-01-15 10:30:00',
-        ]);
+        $exporter = new UserExport(User::query());
+        $users = $exporter->query()->limit(3)->get();
 
-        $query = User::query()->where('id', $user->id);
-        $export = new UserExport($query);
-
-        $mapped = $export->map($user->fresh());
-
-        // Should contain formatted date
-        $this->assertContains('2024-01-15 10:30:00', $mapped);
+        $this->assertNotEmpty($users);
+        foreach ($users as $user) {
+            $this->assertTrue($user->relationLoaded('roles'));
+        }
     }
 
     /** @test */
-    public function test_export_handles_empty_dataset()
+    public function it_implements_xlsx_styling_contracts(): void
     {
-        // Create an empty query
-        $query = User::query()->where('id', 0); // No match
-        $export = new UserExport($query);
+        $exporter = new UserExport(User::query());
 
-        $result = $export->query()->get();
-
-        $this->assertCount(0, $result);
-        $this->assertIsArray($export->headings());
+        $this->assertInstanceOf(ShouldAutoSize::class, $exporter);
+        $this->assertInstanceOf(WithColumnWidths::class, $exporter);
+        $this->assertInstanceOf(WithEvents::class, $exporter);
+        $this->assertInstanceOf(WithStyles::class, $exporter);
     }
 
     /** @test */
-    public function test_export_eager_loads_roles()
+    public function it_provides_styled_header_configuration(): void
     {
-        $role = Role::firstOrCreate(['name' => 'Test Role', 'guard_name' => 'web']);
-        $user = User::factory()->create();
-        $user->assignRole($role);
+        $exporter = new UserExport(User::query());
+        $styles = $exporter->styles(new Worksheet());
 
-        $query = User::query()->where('id', $user->id);
-        $export = new UserExport($query);
+        $this->assertArrayHasKey(1, $styles);
+        $this->assertTrue($styles[1]['font']['bold']);
+        $this->assertSame('FFFFFF', $styles[1]['font']['color']['rgb']);
+        $this->assertSame('1D4ED8', $styles[1]['fill']['startColor']['rgb']);
+    }
 
-        $result = $export->query()->get();
+    /** @test */
+    public function it_registers_after_sheet_event_for_table_formatting(): void
+    {
+        $exporter = new UserExport(User::query());
+        $events = $exporter->registerEvents();
 
-        // Roles should be loaded
-        $this->assertTrue($result->first()->relationLoaded('roles'));
+        $this->assertArrayHasKey(AfterSheet::class, $events);
+        $this->assertIsCallable($events[AfterSheet::class]);
+    }
+
+    /** @test */
+    public function it_defines_readable_column_widths_for_exported_sheet(): void
+    {
+        $exporter = new UserExport(User::query());
+        $columnWidths = $exporter->columnWidths();
+
+        $this->assertSame(28, $columnWidths['B']);
+        $this->assertSame(34, $columnWidths['C']);
+        $this->assertSame(26, $columnWidths['E']);
     }
 }

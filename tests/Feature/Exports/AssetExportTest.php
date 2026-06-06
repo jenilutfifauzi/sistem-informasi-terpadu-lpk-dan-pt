@@ -11,6 +11,12 @@ use App\Models\AssetAssignment;
 use App\Models\EmployeeLPK;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithColumnWidths;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Events\AfterSheet;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use Tests\TestCase;
 
 class AssetExportTest extends TestCase
@@ -23,7 +29,9 @@ class AssetExportTest extends TestCase
         DB::beginTransaction();
 
         // Create authenticated user
-        $this->user = User::factory()->create();
+        $this->user = User::factory()->create([
+            'email' => 'asset-export-auth-'.uniqid()."@example.test",
+        ]);
         $this->actingAs($this->user);
     }
 
@@ -158,19 +166,35 @@ class AssetExportTest extends TestCase
     /** @test */
     public function it_respects_query_filters(): void
     {
-        Asset::factory()->create(['kategori' => AssetCategory::Elektronik, 'kondisi' => AssetCondition::Baik]);
-        Asset::factory()->create(['kategori' => AssetCategory::Furniture, 'kondisi' => AssetCondition::Baik]);
-        Asset::factory()->create(['kategori' => AssetCategory::Kendaraan, 'kondisi' => AssetCondition::Rusak]);
+        $entity = $this->user->entity;
 
-        $query = Asset::query()->where('kategori', AssetCategory::Elektronik);
+        $elektronikAsset = Asset::factory()->create([
+            'entity' => $entity,
+            'kategori' => AssetCategory::Elektronik,
+            'kondisi' => AssetCondition::Baik,
+        ]);
+        $furnitureAsset = Asset::factory()->create([
+            'entity' => $entity,
+            'kategori' => AssetCategory::Furniture,
+            'kondisi' => AssetCondition::Baik,
+        ]);
+        $kendaraanAsset = Asset::factory()->create([
+            'entity' => $entity,
+            'kategori' => AssetCategory::Kendaraan,
+            'kondisi' => AssetCondition::Rusak,
+        ]);
+
+        $query = Asset::query()
+            ->whereKey([$elektronikAsset->id, $furnitureAsset->id, $kendaraanAsset->id])
+            ->where('kategori', AssetCategory::Elektronik);
         $exporter = new AssetExport($query);
 
         $collection = $exporter->query()->get();
 
-        $this->assertGreaterThanOrEqual(1, $collection->count());
-        // All returned items should be Elektronik category
+        $this->assertCount(1, $collection);
         foreach ($collection as $asset) {
             $this->assertEquals(AssetCategory::Elektronik, $asset->kategori);
+            $this->assertEquals($entity, $asset->entity);
         }
     }
 
@@ -219,9 +243,15 @@ class AssetExportTest extends TestCase
     {
         // Create assets with assignments
         $employee = EmployeeLPK::factory()->create();
+        $entity = $this->user->entity;
+
+        $createdAssets = collect();
 
         for ($i = 0; $i < 3; $i++) {
-            $asset = Asset::factory()->create(['kondisi' => AssetCondition::Baik]);
+            $asset = Asset::factory()->create([
+                'entity' => $entity,
+                'kondisi' => AssetCondition::Baik,
+            ]);
             AssetAssignment::create([
                 'asset_id' => $asset->id,
                 'assignable_type' => EmployeeLPK::class,
@@ -229,19 +259,62 @@ class AssetExportTest extends TestCase
                 'assigned_by' => $this->user->id,
                 'assigned_date' => now(),
             ]);
+            $createdAssets->push($asset->id);
         }
 
-        $exporter = new AssetExport(Asset::query());
+        $exporter = new AssetExport(Asset::query()->whereKey($createdAssets->all()));
         $assets = $exporter->query()->get();
 
-        // Verify relationships are loaded
-        $this->assertNotEmpty($assets);
+        $this->assertCount(3, $assets);
         foreach ($assets as $asset) {
-            // If eager loading works, relationLoaded should return true
             $this->assertTrue(
                 $asset->relationLoaded('currentAssignment'),
                 'currentAssignment relationship should be eager loaded'
             );
         }
+    }
+
+    /** @test */
+    public function it_implements_xlsx_styling_contracts(): void
+    {
+        $exporter = new AssetExport(Asset::query());
+
+        $this->assertInstanceOf(ShouldAutoSize::class, $exporter);
+        $this->assertInstanceOf(WithColumnWidths::class, $exporter);
+        $this->assertInstanceOf(WithEvents::class, $exporter);
+        $this->assertInstanceOf(WithStyles::class, $exporter);
+    }
+
+    /** @test */
+    public function it_provides_styled_header_configuration(): void
+    {
+        $exporter = new AssetExport(Asset::query());
+        $styles = $exporter->styles(new Worksheet());
+
+        $this->assertArrayHasKey(1, $styles);
+        $this->assertTrue($styles[1]['font']['bold']);
+        $this->assertSame('FFFFFF', $styles[1]['font']['color']['rgb']);
+        $this->assertSame('1D4ED8', $styles[1]['fill']['startColor']['rgb']);
+    }
+
+    /** @test */
+    public function it_registers_after_sheet_event_for_table_formatting(): void
+    {
+        $exporter = new AssetExport(Asset::query());
+        $events = $exporter->registerEvents();
+
+        $this->assertArrayHasKey(AfterSheet::class, $events);
+        $this->assertIsCallable($events[AfterSheet::class]);
+    }
+
+    /** @test */
+    public function it_defines_readable_column_widths_for_exported_sheet(): void
+    {
+        $exporter = new AssetExport(Asset::query());
+        $columnWidths = $exporter->columnWidths();
+
+        $this->assertSame(20, $columnWidths['B']);
+        $this->assertSame(28, $columnWidths['C']);
+        $this->assertSame(40, $columnWidths['N']);
     }
 }

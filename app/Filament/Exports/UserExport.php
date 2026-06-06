@@ -5,10 +5,19 @@ namespace App\Filament\Exports;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithColumnWidths;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Events\AfterSheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class UserExport implements FromQuery, WithHeadings, WithMapping
+class UserExport implements FromQuery, ShouldAutoSize, WithColumnWidths, WithEvents, WithHeadings, WithMapping, WithStyles
 {
     protected Builder $query;
 
@@ -19,7 +28,6 @@ class UserExport implements FromQuery, WithHeadings, WithMapping
 
     public function query(): Builder
     {
-        // Eager load roles for export
         return $this->query->with('roles');
     }
 
@@ -34,12 +42,13 @@ class UserExport implements FromQuery, WithHeadings, WithMapping
             'Created At',
             'Updated At',
         ];
-        // Note: password and remember_token excluded per security requirements (FR-009)
     }
 
+    /**
+     * @param  User  $user
+     */
     public function map($user): array
     {
-        // Get user roles as comma-separated string
         $roles = $user->roles->pluck('name')->implode(', ');
 
         return [
@@ -48,8 +57,89 @@ class UserExport implements FromQuery, WithHeadings, WithMapping
             $user->email,
             $user->entity?->value ?? $user->entity,
             $roles ?: 'No Roles',
-            $user->created_at?->format('Y-m-d H:i:s'),
-            $user->updated_at?->format('Y-m-d H:i:s'),
+            $user->created_at?->format('Y-m-d H:i:s') ?? '',
+            $user->updated_at?->format('Y-m-d H:i:s') ?? '',
+        ];
+    }
+
+    public function styles(Worksheet $sheet): array
+    {
+        return [
+            1 => [
+                'font' => [
+                    'bold' => true,
+                    'size' => 12,
+                    'color' => ['rgb' => 'FFFFFF'],
+                ],
+                'fill' => [
+                    'fillType' => Fill::FILL_SOLID,
+                    'startColor' => ['rgb' => '1D4ED8'],
+                ],
+                'alignment' => [
+                    'horizontal' => Alignment::HORIZONTAL_CENTER,
+                    'vertical' => Alignment::VERTICAL_CENTER,
+                    'wrapText' => true,
+                ],
+            ],
+        ];
+    }
+
+    public function columnWidths(): array
+    {
+        return [
+            'A' => 10,
+            'B' => 28,
+            'C' => 34,
+            'D' => 14,
+            'E' => 26,
+            'F' => 20,
+            'G' => 20,
+        ];
+    }
+
+    public function registerEvents(): array
+    {
+        return [
+            AfterSheet::class => function (AfterSheet $event): void {
+                $worksheet = $event->sheet->getDelegate();
+                $highestRow = $worksheet->getHighestRow();
+                $highestColumn = $worksheet->getHighestColumn();
+                $dataRange = "A1:{$highestColumn}{$highestRow}";
+
+                $worksheet->freezePane('A2');
+                $worksheet->setAutoFilter($dataRange);
+                $worksheet->getRowDimension(1)->setRowHeight(24);
+
+                $worksheet->getStyle($dataRange)->applyFromArray([
+                    'borders' => [
+                        'allBorders' => [
+                            'borderStyle' => Border::BORDER_THIN,
+                            'color' => ['rgb' => 'D1D5DB'],
+                        ],
+                    ],
+                    'alignment' => [
+                        'vertical' => Alignment::VERTICAL_TOP,
+                    ],
+                ]);
+
+                if ($highestRow >= 2) {
+                    for ($row = 2; $row <= $highestRow; $row++) {
+                        if ($row % 2 === 0) {
+                            $worksheet->getStyle("A{$row}:{$highestColumn}{$row}")->applyFromArray([
+                                'fill' => [
+                                    'fillType' => Fill::FILL_SOLID,
+                                    'startColor' => ['rgb' => 'F8FAFC'],
+                                ],
+                            ]);
+                        }
+                    }
+
+                    $worksheet->getStyle("A2:A{$highestRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                    $worksheet->getStyle("D2:D{$highestRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                    $worksheet->getStyle("E2:E{$highestRow}")->getAlignment()->setWrapText(true);
+                    $worksheet->getStyle("F2:G{$highestRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                }
+            },
         ];
     }
 }

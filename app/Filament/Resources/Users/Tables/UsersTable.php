@@ -6,10 +6,12 @@ use App\Enums\EntityType;
 use App\Filament\Exports\UserExport;
 use Filament\Actions;
 use Filament\Forms;
+use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Maatwebsite\Excel\Excel as ExcelFormat;
 use Maatwebsite\Excel\Facades\Excel;
 
 class UsersTable
@@ -61,26 +63,38 @@ class UsersTable
             ])
             ->headerActions([
                 Actions\Action::make('export')
-                    ->label('Export CSV')
+                    ->label('Export Excel (.xlsx)')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->color('success')
                     ->action(function ($livewire) {
                         $query = $livewire->getFilteredTableQuery();
+                        $count = $query->count();
+
+                        if ($count === 0) {
+                            Notification::make()
+                                ->warning()
+                                ->title('No Data to Export')
+                                ->body('There are no users matching the current filters.')
+                                ->send();
+
+                            return;
+                        }
+
                         $export = new UserExport($query);
 
                         activity()
                             ->causedBy(auth()->user())
                             ->withProperties([
                                 'export_type' => 'user',
-                                'format' => 'csv',
-                                'record_count' => $query->count(),
+                                'format' => 'xlsx',
+                                'record_count' => $count,
                             ])
-                            ->log('Data exported');
+                            ->log('Exported users to xlsx');
 
                         return Excel::download(
                             $export,
-                            'users-'.now()->format('Y-m-d').'.csv',
-                            \Maatwebsite\Excel\Excel::CSV
+                            'users-'.now()->format('Y-m-d_His').'.xlsx',
+                            ExcelFormat::XLSX
                         );
                     }),
             ]);
