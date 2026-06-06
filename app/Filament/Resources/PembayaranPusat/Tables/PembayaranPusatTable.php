@@ -15,6 +15,7 @@ use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Excel as ExcelFormat;
 use Maatwebsite\Excel\Facades\Excel;
 
 class PembayaranPusatTable
@@ -111,7 +112,7 @@ class PembayaranPusatTable
             ])
             ->headerActions([
                 Action::make('export')
-                    ->label('Export Excel')
+                    ->label('Export Excel (.xlsx)')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->action(function ($livewire) {
                         $query = $livewire->getFilteredTableQuery();
@@ -127,7 +128,6 @@ class PembayaranPusatTable
                             return;
                         }
 
-                        // Log export activity
                         activity()
                             ->causedBy(Auth::user())
                             ->withProperties([
@@ -142,7 +142,7 @@ class PembayaranPusatTable
                         return Excel::download(
                             new PembayaranPusatExport($query),
                             $filename,
-                            \Maatwebsite\Excel\Excel::XLSX
+                            ExcelFormat::XLSX
                         );
                     }),
             ])
